@@ -1,7 +1,17 @@
 cmake_minimum_required(VERSION 3.12)
-project(locaal)
+project(LocaalSDK VERSION 1.0.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_STANDARD 11)
+
+# Option to build shared libraries
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(BUILD_EXAMPLES "Build examples" OFF)
+
+# Create the LocaalSDK target
+add_library(${CMAKE_PROJECT_NAME} INTERFACE)
 
 set(USE_SYSTEM_CURL
     OFF
@@ -9,11 +19,11 @@ set(USE_SYSTEM_CURL
 
 if(USE_SYSTEM_CURL)
   find_package(CURL REQUIRED)
-  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE "${CURL_LIBRARIES}")
+  target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE "${CURL_LIBRARIES}")
   target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC "${CURL_INCLUDE_DIRS}")
 else()
   include(cmake/BuildMyCurl.cmake)
-  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE libcurl)
+  target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE libcurl)
 endif()
 
 if(WIN32)
@@ -31,11 +41,11 @@ if(WIN32)
 endif()
 
 include(cmake/BuildWhispercpp.cmake)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Whispercpp)
+target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE Whispercpp)
 
 include(cmake/BuildCTranslate2.cmake)
 include(cmake/BuildSentencepiece.cmake)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ct2 sentencepiece)
+target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE ct2 sentencepiece)
 
 set(USE_SYSTEM_ONNXRUNTIME
     OFF
@@ -46,7 +56,7 @@ set(DISABLE_ONNXRUNTIME_GPU
     CACHE STRING "Disables GPU support of ONNX Runtime (Only valid on Linux)")
 
 if(DISABLE_ONNXRUNTIME_GPU)
-  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE DISABLE_ONNXRUNTIME_GPU)
+  target_compile_definitions(${CMAKE_PROJECT_NAME} INTERFACE DISABLE_ONNXRUNTIME_GPU)
 endif()
 
 if(USE_SYSTEM_ONNXRUNTIME)
@@ -55,8 +65,8 @@ if(USE_SYSTEM_ONNXRUNTIME)
     set(Onnxruntime_INCLUDE_PATH
         ${Onnxruntime_INCLUDE_DIR} ${Onnxruntime_INCLUDE_DIR}/onnxruntime
         ${Onnxruntime_INCLUDE_DIR}/onnxruntime/core/session ${Onnxruntime_INCLUDE_DIR}/onnxruntime/core/providers/cpu)
-    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE "${Onnxruntime_LIBRARIES}")
-    target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC "${Onnxruntime_INCLUDE_PATH}")
+    target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE "${Onnxruntime_LIBRARIES}")
+    target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM INTERFACE "${Onnxruntime_INCLUDE_PATH}")
   else()
     message(FATAL_ERROR "System ONNX Runtime is only supported on Linux!")
   endif()
@@ -66,53 +76,66 @@ endif()
 
 include(cmake/BuildICU.cmake)
 # Add ICU to the target
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ICU)
-target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC ${ICU_INCLUDE_DIR})
+target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE ICU)
+target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM INTERFACE ${ICU_INCLUDE_DIR})
 
-# Add your source files here
-set(SOURCES
-    src/locaal.cpp
+include(cmake/FetchLibav.cmake)
+target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE FFmpeg)
+
+
+# List of all available modules
+set(LOCAAL_MODULES
+    Core
+    Transcription
+    Translation
+    # OCR
+    # DocumentAnalysis
+    # SpeechSynthesis
+    # ImageSegmentation
 )
 
-# Add your header files here
-set(HEADERS
-    include/locaal.h
-)
+# Function to add a module
+function(add_locaal_module MODULE_NAME)
+    add_subdirectory(src/modules/${MODULE_NAME})
+    list(APPEND LOCAAL_ENABLED_MODULES ${MODULE_NAME})
+    set(LOCAAL_ENABLED_MODULES ${LOCAAL_ENABLED_MODULES} PARENT_SCOPE)
+endfunction()
 
-# Create the shared library
-add_library(${CMAKE_PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 
-# Set the include directories
-target_include_directories(locaal PUBLIC include)
+# Add requested modules
+foreach(MODULE ${LocaalSDK_FIND_COMPONENTS})
+    if(${MODULE} IN_LIST LOCAAL_MODULES)
+        add_locaal_module(${MODULE})
+    else()
+        message(FATAL_ERROR "Unknown module: ${MODULE}")
+    endif()
+endforeach()
 
-include(GNUInstallDirs)
+target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE ${LOCAAL_ENABLED_MODULES})
+
+# Generate and install package configuration files
 include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/LocaalSDKConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
 
-# Install the library
-install(TARGETS ${CMAKE_PROJECT_NAME}
-        EXPORT ${CMAKE_PROJECT_NAME}Targets
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/LocaalSDKConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/LocaalSDKConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/LocaalSDK
+)
 
-# Install the headers
-install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME})
+install(TARGETS ${CMAKE_PROJECT_NAME} EXPORT LocaalSDKTargets)
+install(EXPORT LocaalSDKTargets
+    FILE LocaalSDKTargets.cmake
+    NAMESPACE LocaalSDK::
+    DESTINATION lib/cmake/LocaalSDK
+)
 
-# Install the cmake config files
-install(EXPORT ${CMAKE_PROJECT_NAME}Targets
-        FILE ${CMAKE_PROJECT_NAME}Targets.cmake
-        NAMESPACE ${CMAKE_PROJECT_NAME}::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
-
-configure_package_config_file(cmake/${CMAKE_PROJECT_NAME}Config.cmake.in
-                              ${CMAKE_PROJECT_NAME}Config.cmake
-                              INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
-
-write_basic_package_version_file(${CMAKE_PROJECT_NAME}ConfigVersion.cmake
-                                 VERSION 1.0
-                                 COMPATIBILITY AnyNewerVersion)
-
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
-                ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/LocaalSDKConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/LocaalSDKConfigVersion.cmake"
+    DESTINATION lib/cmake/LocaalSDK
+)

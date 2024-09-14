@@ -37,6 +37,7 @@ endif()
 
 FetchContent_Declare(
   libcurl_fetch
+  DOWNLOAD_EXTRACT_TIMESTAMP
   URL ${LibCurl_URL}
   URL_HASH ${LibCurl_HASH})
 FetchContent_MakeAvailable(libcurl_fetch)

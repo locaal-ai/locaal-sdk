@@ -6,7 +6,7 @@
 
 #include <obs-module.h>
 
-void shutdown_whisper_thread(struct transcription_filter_data *gf)
+void shutdown_whisper_thread(struct transcription_context *gf)
 {
 	obs_log(gf->log_level, "shutdown_whisper_thread");
 	if (gf->whisper_context != nullptr) {
@@ -24,7 +24,7 @@ void shutdown_whisper_thread(struct transcription_filter_data *gf)
 	}
 }
 
-void start_whisper_thread_with_path(struct transcription_filter_data *gf,
+void start_whisper_thread_with_path(struct transcription_context *gf,
 				    const std::string &whisper_model_path,
 				    const char *silero_vad_model_file)
 {

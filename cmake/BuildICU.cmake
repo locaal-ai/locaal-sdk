@@ -14,6 +14,7 @@ if(WIN32)
 
   FetchContent_Declare(
     ICU_build
+    DOWNLOAD_EXTRACT_TIMESTAMP
     URL ${ICU_URL}
     URL_HASH ${ICU_HASH})
 
@@ -99,3 +100,7 @@ foreach(lib ${ICU_LIBRARIES})
   target_link_libraries(ICU INTERFACE ICU::${lib})
 endforeach()
 target_include_directories(ICU SYSTEM INTERFACE $<BUILD_INTERFACE:${ICU_INCLUDE_DIR}>)
+
+# add exported target
+install(TARGETS ICU EXPORT ICUTargets)
+install(EXPORT ICUTargets NAMESPACE ICU:: DESTINATION "lib/cmake/ICU")

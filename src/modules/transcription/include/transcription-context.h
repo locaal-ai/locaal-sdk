@@ -18,7 +18,7 @@
 
 #define MAX_PREPROC_CHANNELS 10
 
-struct transcription_filter_data {
+struct transcription_context {
 	obs_source_t *context; // obs filter source (this filter)
 	size_t channels;       // number of channels
 	uint32_t sample_rate;  // input sample rate
@@ -125,7 +125,7 @@ struct transcription_filter_data {
 		TokenBufferSegmentation::SEGMENTATION_TOKEN;
 
 	// ctor
-	transcription_filter_data() : whisper_buf_mutex(), whisper_ctx_mutex(), wshiper_thread_cv()
+	transcription_context() : whisper_buf_mutex(), whisper_ctx_mutex(), wshiper_thread_cv()
 	{
 		// initialize all pointers to nullptr
 		for (size_t i = 0; i < MAX_PREPROC_CHANNELS; i++) {
@@ -147,12 +147,12 @@ struct transcription_filter_audio_info {
 };
 
 // Callback sent when the transcription has a new result
-void set_text_callback(struct transcription_filter_data *gf, const DetectionResultWithText &str);
-void clear_current_caption(transcription_filter_data *gf_);
+void set_text_callback(struct transcription_context *gf, const DetectionResultWithText &str);
+void clear_current_caption(transcription_context *gf_);
 
 // Callback sent when the VAD finds an audio chunk. Sample rate = WHISPER_SAMPLE_RATE, channels = 1
 // The audio chunk is in 32-bit float format
-void audio_chunk_callback(struct transcription_filter_data *gf, const float *pcm32f_data,
+void audio_chunk_callback(struct transcription_context *gf, const float *pcm32f_data,
 			  size_t frames, int vad_state, const DetectionResultWithText &result);
 
 #endif /* TRANSCRIPTION_FILTER_DATA_H */

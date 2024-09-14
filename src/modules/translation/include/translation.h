@@ -34,15 +34,15 @@ struct translation_context {
 };
 
 int build_translation_context(struct translation_context &translation_ctx);
-void build_and_enable_translation(struct transcription_filter_data *gf,
+void build_and_enable_translation(struct transcription_context *gf,
 				  const std::string &model_file_path);
 
 int translate(struct translation_context &translation_ctx, const std::string &text,
 	      const std::string &source_lang, const std::string &target_lang, std::string &result);
 
-#define OBS_POLYGLOT_TRANSLATION_INIT_FAIL -1
-#define OBS_POLYGLOT_TRANSLATION_INIT_SUCCESS 0
-#define OBS_POLYGLOT_TRANSLATION_SUCCESS 0
-#define OBS_POLYGLOT_TRANSLATION_FAIL -1
+#define LOCAAL_TRANSLATION_INIT_FAIL -1
+#define LOCAAL_TRANSLATION_INIT_SUCCESS 0
+#define LOCAAL_TRANSLATION_SUCCESS 0
+#define LOCAAL_TRANSLATION_FAIL -1
 
 #endif // TRANSLATION_H

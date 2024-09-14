@@ -9,7 +9,7 @@
 #include "plugin-support.h"
 #include "model-utils/model-downloader.h"
 
-void update_whisper_model(struct transcription_filter_data *gf)
+void update_whisper_model(struct transcription_context *gf)
 {
 	if (gf->context == nullptr) {
 		obs_log(LOG_ERROR, "obs_source_t context is null");

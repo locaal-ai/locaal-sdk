@@ -10,7 +10,7 @@
 #include <obs-module.h>
 #include <regex>
 
-void build_and_enable_translation(struct transcription_filter_data *gf,
+void build_and_enable_translation(struct transcription_context *gf,
 				  const std::string &model_file_path)
 {
 	std::lock_guard<std::mutex> lock(gf->whisper_ctx_mutex);

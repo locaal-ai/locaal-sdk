@@ -27,6 +27,7 @@ elseif(WIN32)
   if(${ACCELERATION} STREQUAL "cpu" OR ${ACCELERATION} STREQUAL "hipblas")
     FetchContent_Declare(
       ctranslate2_fetch
+      DOWNLOAD_EXTRACT_TIMESTAMP
       URL https://github.com/occ-ai/obs-ai-ctranslate2-dep/releases/download/1.2.0/libctranslate2-windows-4.1.1-Release-cpu.zip
       URL_HASH SHA256=30ff8b2499b8d3b5a6c4d6f7f8ddbc89e745ff06e0050b645e3b7c9b369451a3)
   else()
@@ -125,3 +126,7 @@ else()
   target_link_libraries(ct2 INTERFACE ct2::ct2 cpu_features)
 
 endif()
+
+# add exported target install
+install(TARGETS ct2 EXPORT ct2Targets)
+install(EXPORT ct2Targets NAMESPACE ct2:: DESTINATION "lib/cmake/ct2")

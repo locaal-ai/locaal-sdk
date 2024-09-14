@@ -5,8 +5,8 @@
 
 #include <string>
 
-void shutdown_whisper_thread(struct transcription_filter_data *gf);
-void start_whisper_thread_with_path(struct transcription_filter_data *gf, const std::string &path,
+void shutdown_whisper_thread(struct transcription_context *gf);
+void start_whisper_thread_with_path(struct transcription_context *gf, const std::string &path,
 				    const char *silero_vad_model_file);
 
 std::pair<int, int> findStartOfOverlap(const std::vector<whisper_token_data> &seq1,

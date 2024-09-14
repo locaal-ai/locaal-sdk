@@ -24,7 +24,7 @@
 #include <regex>
 
 struct whisper_context *init_whisper_context(const std::string &model_path_in,
-					     struct transcription_filter_data *gf)
+					     struct transcription_context *gf)
 {
 	std::string model_path = model_path_in;
 
@@ -46,8 +46,8 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 	whisper_log_set(
 		[](enum ggml_log_level level, const char *text, void *user_data) {
 			UNUSED_PARAMETER(level);
-			struct transcription_filter_data *ctx =
-				static_cast<struct transcription_filter_data *>(user_data);
+			struct transcription_context *ctx =
+				static_cast<struct transcription_context *>(user_data);
 			// remove trailing newline
 			char *text_copy = bstrdup(text);
 			text_copy[strcspn(text_copy, "\n")] = 0;
@@ -124,7 +124,7 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 	return ctx;
 }
 
-struct DetectionResultWithText run_whisper_inference(struct transcription_filter_data *gf,
+struct DetectionResultWithText run_whisper_inference(struct transcription_context *gf,
 						     const float *pcm32f_data_,
 						     size_t pcm32f_num_samples, uint64_t t0 = 0,
 						     uint64_t t1 = 0,
@@ -310,7 +310,7 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_filter
 		language};
 }
 
-void run_inference_and_callbacks(transcription_filter_data *gf, uint64_t start_offset_ms,
+void run_inference_and_callbacks(transcription_context *gf, uint64_t start_offset_ms,
 				 uint64_t end_offset_ms, int vad_state)
 {
 	// get the data from the entire whisper buffer
@@ -350,8 +350,8 @@ void whisper_loop(void *data)
 		return;
 	}
 
-	struct transcription_filter_data *gf =
-		static_cast<struct transcription_filter_data *>(data);
+	struct transcription_context *gf =
+		static_cast<struct transcription_context *>(data);
 
 	obs_log(gf->log_level, "Starting whisper thread");
 

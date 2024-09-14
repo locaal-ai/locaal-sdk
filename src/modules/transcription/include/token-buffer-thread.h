@@ -22,7 +22,7 @@ typedef std::string TokenBufferString;
 typedef char TokenBufferChar;
 #endif
 
-struct transcription_filter_data;
+struct transcription_context;
 
 enum TokenBufferSegmentation { SEGMENTATION_WORD = 0, SEGMENTATION_TOKEN, SEGMENTATION_SENTENCE };
 enum TokenBufferSpeed { SPEED_SLOW = 0, SPEED_NORMAL, SPEED_FAST };
@@ -51,7 +51,7 @@ public:
 	TokenBufferThread() noexcept;
 
 	~TokenBufferThread();
-	void initialize(struct transcription_filter_data *gf,
+	void initialize(struct transcription_context *gf,
 			std::function<void(const std::string &)> captionPresentationCallback_,
 			std::function<void(const std::string &)> sentenceOutputCallback_,
 			size_t numSentences_, size_t numTokensPerSentence_,
@@ -78,7 +78,7 @@ private:
 	void monitor();
 	void log_token_vector(const std::vector<std::string> &tokens);
 	int getWaitTime(TokenBufferSpeed speed) const;
-	struct transcription_filter_data *gf;
+	struct transcription_context *gf;
 	std::deque<TokenBufferToken> inputQueue;
 	std::deque<TokenBufferToken> presentationQueue;
 	std::deque<TokenBufferToken> contributionQueue;

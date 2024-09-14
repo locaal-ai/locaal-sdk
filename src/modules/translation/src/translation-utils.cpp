@@ -6,7 +6,7 @@
 #include "plugin-support.h"
 #include "model-utils/model-downloader.h"
 
-void start_translation(struct transcription_filter_data *gf)
+void start_translation(struct transcription_context *gf)
 {
 	obs_log(LOG_INFO, "Starting translation...");
 

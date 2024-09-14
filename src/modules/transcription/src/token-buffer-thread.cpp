@@ -38,7 +38,7 @@ TokenBufferThread::~TokenBufferThread()
 }
 
 void TokenBufferThread::initialize(
-	struct transcription_filter_data *gf_,
+	struct transcription_context *gf_,
 	std::function<void(const std::string &)> captionPresentationCallback_,
 	std::function<void(const std::string &)> sentenceOutputCallback_, size_t numSentences_,
 	size_t numPerSentence_, std::chrono::seconds maxTime_,

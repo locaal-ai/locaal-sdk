@@ -148,3 +148,13 @@ if(APPLE)
   target_link_libraries(Whispercpp INTERFACE "-framework Accelerate -framework CoreML -framework Metal")
   target_link_libraries(Whispercpp INTERFACE Whispercpp::GGML Whispercpp::CoreML)
 endif(APPLE)
+
+# add exported target install
+install(TARGETS Whispercpp EXPORT WhispercppTargets)
+install(EXPORT WhispercppTargets NAMESPACE Whispercpp:: DESTINATION lib/cmake/Whispercpp)
+install(FILES ${whispercpp_fetch_SOURCE_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}whisper${CMAKE_STATIC_LIBRARY_SUFFIX}
+        DESTINATION "bin")
+install(FILES ${whispercpp_fetch_SOURCE_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ggml${CMAKE_STATIC_LIBRARY_SUFFIX}
+        DESTINATION "bin")
+install(FILES ${whispercpp_fetch_SOURCE_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}whisper.coreml${CMAKE_STATIC_LIBRARY_SUFFIX}
+        DESTINATION "bin")

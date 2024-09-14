@@ -17,6 +17,7 @@ elseif(WIN32)
 
   FetchContent_Declare(
     sentencepiece_fetch
+    DOWNLOAD_EXTRACT_TIMESTAMP
     URL https://github.com/occ-ai/obs-ai-ctranslate2-dep/releases/download/1.1.1/sentencepiece-windows-0.2.0-Release.zip
     URL_HASH SHA256=846699c7fa1e8918b71ed7f2bd5cd60e47e51105e1d84e3192919b4f0f10fdeb)
   FetchContent_MakeAvailable(sentencepiece_fetch)
@@ -59,3 +60,8 @@ else()
   target_include_directories(sentencepiece INTERFACE ${INSTALL_DIR}/include)
 
 endif()
+
+# add exported target install
+install(TARGETS sentencepiece EXPORT sentencepiece-targets)
+install(EXPORT sentencepiece-targets NAMESPACE sentencepiece:: DESTINATION lib/cmake/sentencepiece)
+install(FILES ${sentencepiece_fetch_SOURCE_DIR}/lib/libsentencepiece.a DESTINATION "bin")
