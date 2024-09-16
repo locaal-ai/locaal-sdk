@@ -23,3 +23,8 @@ CMakeFiles/
 CMakeScripts/
 cmake_install.cmake
 Makefile
+
+# Visual Studio Code ignores
+.vscode/
+.settings/
+*.code-workspace

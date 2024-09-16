@@ -99,7 +99,8 @@ add_dependencies(ICU ICU_build)
 foreach(lib ${ICU_LIBRARIES})
   target_link_libraries(ICU INTERFACE ICU::${lib})
 endforeach()
-target_include_directories(ICU SYSTEM INTERFACE $<BUILD_INTERFACE:${ICU_INCLUDE_DIR}>)
+target_include_directories(ICU INTERFACE $<BUILD_INTERFACE:${ICU_INCLUDE_DIR}>
+                                                $<INSTALL_INTERFACE:include>)
 
 # add exported target
 install(TARGETS ICU EXPORT ICUTargets)

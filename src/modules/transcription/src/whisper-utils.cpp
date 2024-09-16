@@ -1,14 +1,12 @@
 #include "whisper-utils.h"
-#include "plugin-support.h"
-#include "model-utils/model-downloader.h"
+#include "logger.h"
+#include "model-downloader.h"
 #include "whisper-processing.h"
 #include "vad-processing.h"
 
-#include <obs-module.h>
-
 void shutdown_whisper_thread(struct transcription_context *gf)
 {
-	obs_log(gf->log_level, "shutdown_whisper_thread");
+	Logger::log(gf->log_level, "shutdown_whisper_thread");
 	if (gf->whisper_context != nullptr) {
 		// acquire the mutex before freeing the context
 		std::lock_guard<std::mutex> lock(gf->whisper_ctx_mutex);
@@ -28,21 +26,22 @@ void start_whisper_thread_with_path(struct transcription_context *gf,
 				    const std::string &whisper_model_path,
 				    const char *silero_vad_model_file)
 {
-	obs_log(gf->log_level, "start_whisper_thread_with_path: %s, silero model path: %s",
-		whisper_model_path.c_str(), silero_vad_model_file);
+	Logger::log(gf->log_level, "start_whisper_thread_with_path: %s, silero model path: %s",
+		    whisper_model_path.c_str(), silero_vad_model_file);
 	std::lock_guard<std::mutex> lock(gf->whisper_ctx_mutex);
 	if (gf->whisper_context != nullptr) {
-		obs_log(LOG_ERROR, "cannot init whisper: whisper_context is not null");
+		Logger::log(Logger::Level::ERROR,
+			    "cannot init whisper: whisper_context is not null");
 		return;
 	}
 
 	// initialize Silero VAD
 	initialize_vad(gf, silero_vad_model_file);
 
-	obs_log(gf->log_level, "Create whisper context");
+	Logger::log(gf->log_level, "Create whisper context");
 	gf->whisper_context = init_whisper_context(whisper_model_path, gf);
 	if (gf->whisper_context == nullptr) {
-		obs_log(LOG_ERROR, "Failed to initialize whisper context");
+		Logger::log(Logger::Level::ERROR, "Failed to initialize whisper context");
 		return;
 	}
 	gf->whisper_model_file_currently_loaded = whisper_model_path;

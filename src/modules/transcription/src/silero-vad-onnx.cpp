@@ -10,8 +10,7 @@
 #include <cstdio>
 #include <cstdarg>
 
-#include <obs.h>
-#include "plugin-support.h"
+#include "logger.h"
 
 // #define __DEBUG_SPEECH_PROB___
 
@@ -152,7 +151,7 @@ void VadIterator::predict(const std::vector<float> &data)
 		float speech =
 			current_sample -
 			window_size_samples; // minus window_size_samples to get precise start time point.
-		obs_log(LOG_INFO, "{    start: %.3f s (%.3f) %08d}", 1.0 * speech / sample_rate,
+		Logger::log(Logger::Level::INFO, "{    start: %.3f s (%.3f) %08d}", 1.0 * speech / sample_rate,
 			speech_prob, current_sample - window_size_samples);
 #endif //__DEBUG_SPEECH_PROB___
 		if (temp_end != 0) {
@@ -202,7 +201,7 @@ void VadIterator::predict(const std::vector<float> &data)
 			float speech =
 				current_sample -
 				window_size_samples; // minus window_size_samples to get precise start time point.
-			obs_log(LOG_INFO, "{ speaking: %.3f s (%.3f) %08d}",
+			Logger::log(Logger::Level::INFO, "{ speaking: %.3f s (%.3f) %08d}",
 				1.0 * speech / sample_rate, speech_prob,
 				current_sample - window_size_samples);
 #endif //__DEBUG_SPEECH_PROB___
@@ -211,7 +210,7 @@ void VadIterator::predict(const std::vector<float> &data)
 			float speech =
 				current_sample -
 				window_size_samples; // minus window_size_samples to get precise start time point.
-			obs_log(LOG_INFO, "{  silence: %.3f s (%.3f) %08d}",
+			Logger::log(Logger::Level::INFO, "{  silence: %.3f s (%.3f) %08d}",
 				1.0 * speech / sample_rate, speech_prob,
 				current_sample - window_size_samples);
 #endif //__DEBUG_SPEECH_PROB___
@@ -225,7 +224,7 @@ void VadIterator::predict(const std::vector<float> &data)
 		float speech =
 			current_sample - window_size_samples -
 			speech_pad_samples; // minus window_size_samples to get precise start time point.
-		obs_log(LOG_INFO, "{      end: %.3f s (%.3f) %08d}", 1.0 * speech / sample_rate,
+		Logger::log(Logger::Level::INFO, "{      end: %.3f s (%.3f) %08d}", 1.0 * speech / sample_rate,
 			speech_prob, current_sample - window_size_samples);
 #endif //__DEBUG_SPEECH_PROB___
 		if (triggered == true) {
@@ -295,7 +294,7 @@ void VadIterator::collect_chunks(const std::vector<float> &input_wav,
 	output_wav.clear();
 	for (size_t i = 0; i < speeches.size(); i++) {
 #ifdef __DEBUG_SPEECH_PROB___
-		obs_log(LOG_INFO, "%s", speeches[i].string().c_str());
+		Logger::log(Logger::Level::INFO, "%s", speeches[i].string().c_str());
 #endif //#ifdef __DEBUG_SPEECH_PROB___
 		std::vector<float> slice(&input_wav[speeches[i].start],
 					 &input_wav[speeches[i].end]);

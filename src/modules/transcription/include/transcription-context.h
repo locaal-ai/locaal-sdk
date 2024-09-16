@@ -1,5 +1,5 @@
-#ifndef TRANSCRIPTION_FILTER_DATA_H
-#define TRANSCRIPTION_FILTER_DATA_H
+#ifndef TRANSCRIPTION_CONTEXT_H
+#define TRANSCRIPTION_CONTEXT_H
 
 #include <whisper.h>
 
@@ -10,18 +10,24 @@
 #include <functional>
 #include <string>
 
-#include "translation/translation.h"
-#include "translation/translation-includes.h"
-#include "whisper-utils/silero-vad-onnx.h"
-#include "whisper-utils/whisper-processing.h"
-#include "whisper-utils/token-buffer-thread.h"
+#include "translation.h"
+#include "translation-includes.h"
+#include "silero-vad-onnx.h"
+#include "whisper-processing.h"
+#include "token-buffer-thread.h"
+#include "logger.h"
 
 #define MAX_PREPROC_CHANNELS 10
 
+// Audio packet info
+struct transcription_filter_audio_info {
+	uint32_t frames;
+	uint64_t timestamp_offset_ns; // offset (since start of processing) timestamp in ns
+};
+
 struct transcription_context {
-	obs_source_t *context; // obs filter source (this filter)
-	size_t channels;       // number of channels
-	uint32_t sample_rate;  // input sample rate
+	size_t channels;      // number of channels
+	uint32_t sample_rate; // input sample rate
 	// How many input frames (in input sample rate) are needed for the next whisper frame
 	size_t frames;
 	// How many frames were processed in the last whisper frame (this is dynamic)
@@ -40,13 +46,13 @@ struct transcription_context {
 
 	/* PCM buffers */
 	float *copy_buffers[MAX_PREPROC_CHANNELS];
-	struct circlebuf info_buffer;
-	struct circlebuf input_buffers[MAX_PREPROC_CHANNELS];
-	struct circlebuf whisper_buffer;
+	std::deque<transcription_filter_audio_info> info_buffer;
+	std::deque<float> input_buffers[MAX_PREPROC_CHANNELS];
+	std::deque<float> whisper_buffer;
 
 	/* Resampler */
 	audio_resampler_t *resampler_to_whisper;
-	struct circlebuf resampled_buffer;
+	std::deque<float> resampled_buffer;
 
 	/* whisper */
 	std::string whisper_model_path;
@@ -61,7 +67,7 @@ struct transcription_context {
 
 	bool do_silence;
 	int vad_mode;
-	int log_level = LOG_DEBUG;
+	Logger::Level log_level = Logger::Level::DEBUG;
 	bool log_words;
 	bool caption_to_stream;
 	bool active = false;
@@ -131,7 +137,6 @@ struct transcription_context {
 		for (size_t i = 0; i < MAX_PREPROC_CHANNELS; i++) {
 			copy_buffers[i] = nullptr;
 		}
-		context = nullptr;
 		resampler_to_whisper = nullptr;
 		whisper_model_path = "";
 		whisper_context = nullptr;
@@ -140,19 +145,13 @@ struct transcription_context {
 	}
 };
 
-// Audio packet info
-struct transcription_filter_audio_info {
-	uint32_t frames;
-	uint64_t timestamp_offset_ns; // offset (since start of processing) timestamp in ns
-};
-
 // Callback sent when the transcription has a new result
 void set_text_callback(struct transcription_context *gf, const DetectionResultWithText &str);
 void clear_current_caption(transcription_context *gf_);
 
 // Callback sent when the VAD finds an audio chunk. Sample rate = WHISPER_SAMPLE_RATE, channels = 1
 // The audio chunk is in 32-bit float format
-void audio_chunk_callback(struct transcription_context *gf, const float *pcm32f_data,
-			  size_t frames, int vad_state, const DetectionResultWithText &result);
+void audio_chunk_callback(struct transcription_context *gf, const float *pcm32f_data, size_t frames,
+			  int vad_state, const DetectionResultWithText &result);
 
-#endif /* TRANSCRIPTION_FILTER_DATA_H */
+#endif /* TRANSCRIPTION_CONTEXT_H */

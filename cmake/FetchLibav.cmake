@@ -68,7 +68,10 @@ endif()
 
 # Create FFmpeg interface library
 add_library(FFmpeg INTERFACE)
-target_include_directories(FFmpeg INTERFACE ${FFMPEG_INCLUDE_DIR})
+target_include_directories(FFmpeg INTERFACE
+    $<BUILD_INTERFACE:${FFMPEG_INCLUDE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(FFmpeg INTERFACE ${FFMPEG_LIBRARIES})
 
 # add exported target

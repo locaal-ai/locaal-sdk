@@ -9,8 +9,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <obs-module.h>
-
 #ifdef _WIN32
 #include <Windows.h>
 #define SPACE L" "
@@ -75,7 +73,8 @@ void TokenBufferThread::log_token_vector(const std::vector<std::string> &tokens)
 	for (const auto &token : tokens) {
 		output += token;
 	}
-	obs_log(LOG_INFO, "TokenBufferThread::log_token_vector: '%s'", output.c_str());
+	Logger::log(Logger::Level::INFO, "TokenBufferThread::log_token_vector: '%s'",
+		    output.c_str());
 }
 
 void TokenBufferThread::addSentenceFromStdString(const std::string &sentence,
@@ -166,7 +165,7 @@ void TokenBufferThread::clear()
 
 void TokenBufferThread::monitor()
 {
-	obs_log(LOG_INFO, "TokenBufferThread::monitor");
+	Logger::log(Logger::Level::INFO, "TokenBufferThread::monitor");
 
 	this->captionPresentationCallback("");
 
@@ -345,8 +344,9 @@ void TokenBufferThread::monitor()
 							     contribution.end());
 #endif
 
-				obs_log(gf->log_level, "TokenBufferThread::monitor: output '%s'",
-					contribution_out.c_str());
+				Logger::log(gf->log_level,
+					    "TokenBufferThread::monitor: output '%s'",
+					    contribution_out.c_str());
 				this->sentenceOutputCallback(contribution_out);
 				lastContributionIsSent = true;
 			}
@@ -385,7 +385,7 @@ void TokenBufferThread::monitor()
 						 : getWaitTime(SPEED_SLOW)));
 	}
 
-	obs_log(LOG_INFO, "TokenBufferThread::monitor: done");
+	Logger::log(Logger::Level::INFO, "TokenBufferThread::monitor: done");
 }
 
 int TokenBufferThread::getWaitTime(TokenBufferSpeed speed) const

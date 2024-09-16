@@ -1,10 +1,8 @@
 #include <whisper.h>
 
-#include <obs-module.h>
-
 #include <util/profiler.hpp>
 
-#include "plugin-support.h"
+#include "logger.h"
 #include "transcription-filter-data.h"
 #include "whisper-processing.h"
 #include "whisper-utils.h"
@@ -28,16 +26,17 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 {
 	std::string model_path = model_path_in;
 
-	obs_log(LOG_INFO, "Loading whisper model from %s", model_path.c_str());
+	Logger::log(Logger::Level::INFO, "Loading whisper model from %s", model_path.c_str());
 
 	if (std::filesystem::is_directory(model_path)) {
-		obs_log(LOG_INFO,
+		Logger::log(
+			Logger::Level::INFO,
 			"Model path is a directory, not a file, looking for .bin file in folder");
 		// look for .bin file
 		const std::string model_bin_file = find_bin_file_in_folder(model_path);
 		if (model_bin_file.empty()) {
-			obs_log(LOG_ERROR, "Model bin file not found in folder: %s",
-				model_path.c_str());
+			Logger::log(Logger::Level::ERROR, "Model bin file not found in folder: %s",
+				    model_path.c_str());
 			return nullptr;
 		}
 		model_path = model_bin_file;
@@ -51,7 +50,7 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 			// remove trailing newline
 			char *text_copy = bstrdup(text);
 			text_copy[strcspn(text_copy, "\n")] = 0;
-			obs_log(ctx->log_level, "Whisper: %s", text_copy);
+			Logger::log(ctx->log_level, "Whisper: %s", text_copy);
 			bfree(text_copy);
 		},
 		gf);
@@ -59,25 +58,26 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 	struct whisper_context_params cparams = whisper_context_default_params();
 #ifdef LOCALVOCAL_WITH_CUDA
 	cparams.use_gpu = true;
-	obs_log(LOG_INFO, "Using CUDA GPU for inference, device %d", cparams.gpu_device);
+	Logger::log(Logger::Level::INFO, "Using CUDA GPU for inference, device %d",
+		    cparams.gpu_device);
 #elif defined(LOCALVOCAL_WITH_HIPBLAS)
 	cparams.use_gpu = true;
-	obs_log(LOG_INFO, "Using hipBLAS for inference");
+	Logger::log(Logger::Level::INFO, "Using hipBLAS for inference");
 #elif defined(__APPLE__)
 	cparams.use_gpu = true;
-	obs_log(LOG_INFO, "Using Metal/CoreML for inference");
+	Logger::log(Logger::Level::INFO, "Using Metal/CoreML for inference");
 #else
 	cparams.use_gpu = false;
-	obs_log(LOG_INFO, "Using CPU for inference");
+	Logger::log(Logger::Level::INFO, "Using CPU for inference");
 #endif
 
 	cparams.dtw_token_timestamps = gf->enable_token_ts_dtw;
 	if (gf->enable_token_ts_dtw) {
-		obs_log(LOG_INFO, "DTW token timestamps enabled");
+		Logger::log(Logger::Level::INFO, "DTW token timestamps enabled");
 		cparams.dtw_aheads_preset = WHISPER_AHEADS_TINY_EN;
 		// cparams.dtw_n_top = 4;
 	} else {
-		obs_log(LOG_INFO, "DTW token timestamps disabled");
+		Logger::log(Logger::Level::INFO, "DTW token timestamps disabled");
 		cparams.dtw_aheads_preset = WHISPER_AHEADS_NONE;
 	}
 
@@ -94,8 +94,8 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 		// Read model into buffer
 		std::ifstream modelFile(model_path_ws, std::ios::binary);
 		if (!modelFile.is_open()) {
-			obs_log(LOG_ERROR, "Failed to open whisper model file %s",
-				model_path.c_str());
+			Logger::log(Logger::Level::ERROR, "Failed to open whisper model file %s",
+				    model_path.c_str());
 			return nullptr;
 		}
 		modelFile.seekg(0, std::ios::end);
@@ -112,15 +112,16 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 		ctx = whisper_init_from_file_with_params(model_path.c_str(), cparams);
 #endif
 	} catch (const std::exception &e) {
-		obs_log(LOG_ERROR, "Exception while loading whisper model: %s", e.what());
+		Logger::log(Logger::Level::ERROR, "Exception while loading whisper model: %s",
+			    e.what());
 		return nullptr;
 	}
 	if (ctx == nullptr) {
-		obs_log(LOG_ERROR, "Failed to load whisper model");
+		Logger::log(Logger::Level::ERROR, "Failed to load whisper model");
 		return nullptr;
 	}
 
-	obs_log(LOG_INFO, "Whisper model loaded: %s", whisper_print_system_info());
+	Logger::log(Logger::Level::INFO, "Whisper model loaded: %s", whisper_print_system_info());
 	return ctx;
 }
 
@@ -131,25 +132,26 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 						     int vad_state = VAD_STATE_WAS_OFF)
 {
 	if (gf == nullptr) {
-		obs_log(LOG_ERROR, "run_whisper_inference: gf is null");
+		Logger::log(Logger::Level::ERROR, "run_whisper_inference: gf is null");
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
 
 	if (pcm32f_data_ == nullptr || pcm32f_num_samples == 0) {
-		obs_log(LOG_ERROR, "run_whisper_inference: pcm32f_data is null or size is 0");
+		Logger::log(Logger::Level::ERROR,
+			    "run_whisper_inference: pcm32f_data is null or size is 0");
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
 
 	// if the time difference between t0 and t1 is less than 50 ms - skip
 	if (t1 - t0 < 50) {
-		obs_log(gf->log_level,
-			"Time difference between t0 and t1 is less than 50 ms, skipping");
+		Logger::log(gf->log_level,
+			    "Time difference between t0 and t1 is less than 50 ms, skipping");
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
 
-	obs_log(gf->log_level, "%s: processing %d samples, %.3f sec, %d threads", __func__,
-		int(pcm32f_num_samples), float(pcm32f_num_samples) / WHISPER_SAMPLE_RATE,
-		gf->whisper_params.n_threads);
+	Logger::log(gf->log_level, "%s: processing %d samples, %.3f sec, %d threads", __func__,
+		    int(pcm32f_num_samples), float(pcm32f_num_samples) / WHISPER_SAMPLE_RATE,
+		    gf->whisper_params.n_threads);
 
 	bool should_free_buffer = false;
 	float *pcm32f_data = (float *)pcm32f_data_;
@@ -160,7 +162,8 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 		(uint64_t)(pcm32f_num_samples * 1000 / WHISPER_SAMPLE_RATE);
 
 	if (pcm32f_num_samples < WHISPER_SAMPLE_RATE) {
-		obs_log(gf->log_level,
+		Logger::log(
+			gf->log_level,
 			"Speech segment is less than 1 second, padding with white noise to 1 second");
 		const size_t new_size = (size_t)(1.01f * (float)(WHISPER_SAMPLE_RATE));
 		// create a new buffer and copy the data to it in the middle
@@ -184,7 +187,7 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 
 	std::lock_guard<std::mutex> lock(gf->whisper_ctx_mutex);
 	if (gf->whisper_context == nullptr) {
-		obs_log(LOG_WARNING, "whisper context is null");
+		Logger::log(Logger::Level::WARNING, "whisper context is null");
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
 
@@ -195,7 +198,7 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 			initial_prompt += " " + gf->last_transcription_sentence[i];
 		}
 		gf->whisper_params.initial_prompt = initial_prompt.c_str();
-		obs_log(gf->log_level, "Initial prompt: %s", gf->whisper_params.initial_prompt);
+		Logger::log(gf->log_level, "Initial prompt: %s", gf->whisper_params.initial_prompt);
 	}
 
 	// run the inference
@@ -205,7 +208,8 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 		whisper_full_result = whisper_full(gf->whisper_context, gf->whisper_params,
 						   pcm32f_data, (int)pcm32f_size);
 	} catch (const std::exception &e) {
-		obs_log(LOG_ERROR, "Whisper exception: %s. Filter restart is required", e.what());
+		Logger::log(Logger::Level::ERROR,
+			    "Whisper exception: %s. Filter restart is required", e.what());
 		whisper_free(gf->whisper_context);
 		gf->whisper_context = nullptr;
 		if (should_free_buffer) {
@@ -222,11 +226,12 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 	    strcmp(gf->whisper_params.language, "auto") == 0) {
 		int lang_id = whisper_lang_auto_detect(gf->whisper_context, 0, 1, nullptr);
 		language = whisper_lang_str(lang_id);
-		obs_log(gf->log_level, "Detected language: %s", language.c_str());
+		Logger::log(gf->log_level, "Detected language: %s", language.c_str());
 	}
 
 	if (whisper_full_result != 0) {
-		obs_log(LOG_WARNING, "failed to process audio, error %d", whisper_full_result);
+		Logger::log(Logger::Level::WARNING, "failed to process audio, error %d",
+			    whisper_full_result);
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
 
@@ -261,14 +266,15 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 				const float time = ((float)token.id - 50365.0f) * 0.02f;
 				const float duration_s = (float)incoming_duration_ms / 1000.0f;
 				const float ratio = time / duration_s;
-				obs_log(gf->log_level,
+				Logger::log(
+					gf->log_level,
 					"Time token found %d -> %.3f. Duration: %.3f. Ratio: %.3f. Threshold %.2f",
 					token.id, time, duration_s, ratio,
 					gf->duration_filter_threshold);
 				if (ratio > gf->duration_filter_threshold) {
 					// ratio is too high, skip this detection
-					obs_log(gf->log_level,
-						"Time token ratio too high, skipping");
+					Logger::log(gf->log_level,
+						    "Time token ratio too high, skipping");
 					return {DETECTION_RESULT_SILENCE, "", t0, t1, {}, language};
 				}
 				keep = false;
@@ -279,23 +285,23 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 				text += token_str;
 				tokens.push_back(token);
 			}
-			obs_log(gf->log_level, "S %d, T %2d: %5d\t%s\tp: %.3f [keep: %d]",
-				n_segment, j, token.id, token_str.c_str(), token.p, keep);
+			Logger::log(gf->log_level, "S %d, T %2d: %5d\t%s\tp: %.3f [keep: %d]",
+				    n_segment, j, token.id, token_str.c_str(), token.p, keep);
 		}
 	}
 	sentence_p /= (float)tokens.size();
 	if (sentence_p < gf->sentence_psum_accept_thresh) {
-		obs_log(gf->log_level, "Sentence psum %.3f below threshold %.3f, skipping",
-			sentence_p, gf->sentence_psum_accept_thresh);
+		Logger::log(gf->log_level, "Sentence psum %.3f below threshold %.3f, skipping",
+			    sentence_p, gf->sentence_psum_accept_thresh);
 		return {DETECTION_RESULT_SILENCE, "", t0, t1, {}, language};
 	}
 
-	obs_log(gf->log_level, "Decoded sentence: '%s'", text.c_str());
+	Logger::log(gf->log_level, "Decoded sentence: '%s'", text.c_str());
 
 	if (gf->log_words) {
-		obs_log(LOG_INFO, "[%s --> %s]%s(%.3f) %s", to_timestamp(t0).c_str(),
-			to_timestamp(t1).c_str(), vad_state == VAD_STATE_PARTIAL ? "P" : " ",
-			sentence_p, text.c_str());
+		Logger::log(Logger::Level::INFO, "[%s --> %s]%s(%.3f) %s", to_timestamp(t0).c_str(),
+			    to_timestamp(t1).c_str(), vad_state == VAD_STATE_PARTIAL ? "P" : " ",
+			    sentence_p, text.c_str());
 	}
 
 	if (text.empty() || text == "." || text == " " || text == "\n") {
@@ -346,14 +352,13 @@ void run_inference_and_callbacks(transcription_context *gf, uint64_t start_offse
 void whisper_loop(void *data)
 {
 	if (data == nullptr) {
-		obs_log(LOG_ERROR, "whisper_loop: data is null");
+		Logger::log(Logger::Level::ERROR, "whisper_loop: data is null");
 		return;
 	}
 
-	struct transcription_context *gf =
-		static_cast<struct transcription_context *>(data);
+	struct transcription_context *gf = static_cast<struct transcription_context *>(data);
 
-	obs_log(gf->log_level, "Starting whisper thread");
+	Logger::log(gf->log_level, "Starting whisper thread");
 
 	vad_state current_vad_state = {false, now_ms(), 0, 0};
 
@@ -368,7 +373,8 @@ void whisper_loop(void *data)
 			std::lock_guard<std::mutex> lock(gf->whisper_ctx_mutex);
 			ProfileScope("locked whisper ctx");
 			if (gf->whisper_context == nullptr) {
-				obs_log(LOG_WARNING, "Whisper context is null, exiting thread");
+				Logger::log(Logger::Level::WARNING,
+					    "Whisper context is null, exiting thread");
 				break;
 			}
 		}
@@ -384,9 +390,9 @@ void whisper_loop(void *data)
 			uint64_t now = now_ms();
 			if ((now - gf->last_sub_render_time) > gf->max_sub_duration) {
 				// clear the current sub, call the callback with an empty string
-				obs_log(gf->log_level,
-					"Clearing current subtitle. now: %lu ms, last: %lu ms", now,
-					gf->last_sub_render_time);
+				Logger::log(gf->log_level,
+					    "Clearing current subtitle. now: %lu ms, last: %lu ms",
+					    now, gf->last_sub_render_time);
 				clear_current_caption(gf);
 			}
 		}
@@ -403,5 +409,5 @@ void whisper_loop(void *data)
 		}
 	}
 
-	obs_log(gf->log_level, "Exiting whisper thread");
+	Logger::log(gf->log_level, "Exiting whisper thread");
 }

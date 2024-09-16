@@ -1,7 +1,7 @@
 #ifndef WHISPER_UTILS_H
 #define WHISPER_UTILS_H
 
-#include "transcription-filter-data.h"
+#include "transcription-context.h"
 
 #include <string>
 

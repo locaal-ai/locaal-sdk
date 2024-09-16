@@ -77,11 +77,12 @@ endif()
 include(cmake/BuildICU.cmake)
 # Add ICU to the target
 target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE ICU)
-target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM INTERFACE ${ICU_INCLUDE_DIR})
 
 include(cmake/FetchLibav.cmake)
 target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE FFmpeg)
 
+include(cmake/BuildPlatformdirs.cmake)
+target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE sago_platform_folders_lib)
 
 # List of all available modules
 set(LOCAAL_MODULES

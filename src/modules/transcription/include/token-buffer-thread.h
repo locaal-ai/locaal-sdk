@@ -10,9 +10,7 @@
 #include <functional>
 #include <string>
 
-#include <obs.h>
-
-#include "plugin-support.h"
+#include "logger.h"
 
 #ifdef _WIN32
 typedef std::wstring TokenBufferString;

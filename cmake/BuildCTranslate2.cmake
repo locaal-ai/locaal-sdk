@@ -45,11 +45,14 @@ elseif(WIN32)
 
   add_library(ct2 INTERFACE)
   target_link_libraries(ct2 INTERFACE ${ctranslate2_fetch_SOURCE_DIR}/lib/ctranslate2.lib)
-  set_target_properties(ct2 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${ctranslate2_fetch_SOURCE_DIR}/include)
+  target_include_directories(ct2 INTERFACE
+    $<BUILD_INTERFACE:${ctranslate2_fetch_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
   target_compile_options(ct2 INTERFACE /wd4267 /wd4244 /wd4305 /wd4996 /wd4099)
 
   file(GLOB CT2_DLLS ${ctranslate2_fetch_SOURCE_DIR}/bin/*.dll)
-  install(FILES ${CT2_DLLS} DESTINATION "obs-plugins/64bit")
+  install(FILES ${CT2_DLLS} DESTINATION "bin")
 else()
   # build cpu_features from source
   set(CPU_FEATURES_VERSION "0.9.0")

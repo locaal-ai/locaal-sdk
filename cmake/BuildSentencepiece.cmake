@@ -23,9 +23,11 @@ elseif(WIN32)
   FetchContent_MakeAvailable(sentencepiece_fetch)
   add_library(sentencepiece INTERFACE)
   target_link_libraries(sentencepiece INTERFACE ${sentencepiece_fetch_SOURCE_DIR}/lib/sentencepiece.lib)
-  set_target_properties(sentencepiece PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-                                                 ${sentencepiece_fetch_SOURCE_DIR}/include)
-
+  target_include_directories(sentencepiece INTERFACE
+    $<BUILD_INTERFACE:${sentencepiece_fetch_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+                                             
 else()
 
   set(SP_URL
