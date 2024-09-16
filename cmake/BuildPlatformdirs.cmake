@@ -1,12 +1,14 @@
 include(ExternalProject)
 
+set(SAGO_INSTALL_DIR ${CMAKE_BINARY_DIR}/external/sago_platform_folders)
+
 # Define the sago::platform_folders external project
 ExternalProject_Add(
     sago_platform_folders
     GIT_REPOSITORY https://github.com/sago007/PlatformFolders.git
     GIT_TAG master  # You might want to use a specific tag or commit hash for stability
     CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/external/sago_platform_folders
+        -DCMAKE_INSTALL_PREFIX=${SAGO_INSTALL_DIR}
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     BUILD_COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
     INSTALL_COMMAND ${CMAKE_COMMAND} --install . --config ${CMAKE_BUILD_TYPE}
@@ -19,7 +21,7 @@ add_dependencies(sago_platform_folders_lib sago_platform_folders)
 # Set include directories for the interface library
 target_include_directories(sago_platform_folders_lib
     INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/external/sago_platform_folders/include>
+        $<BUILD_INTERFACE:${SAGO_INSTALL_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 # add exported target install

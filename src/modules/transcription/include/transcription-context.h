@@ -10,8 +10,6 @@
 #include <functional>
 #include <string>
 
-#include "translation.h"
-#include "translation-includes.h"
 #include "silero-vad-onnx.h"
 #include "whisper-processing.h"
 #include "token-buffer-thread.h"
@@ -115,12 +113,6 @@ struct transcription_context {
 	std::mutex whisper_ctx_mutex;
 	std::condition_variable wshiper_thread_cv;
 	std::optional<std::condition_variable> input_cv;
-
-	// translation context
-	struct translation_context translation_ctx;
-	std::string translation_model_index;
-	std::string translation_model_path_external;
-	bool translate_only_full_sentences;
 
 	bool buffered_output = false;
 	TokenBufferThread captions_monitor;

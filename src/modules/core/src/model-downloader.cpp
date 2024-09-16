@@ -1,6 +1,6 @@
 #include "model-downloader.h"
 #include "model-find-utils.h"
-#include "Logger.h"
+#include "logger.h"
 
 #include <sago/platform_folders.h>
 

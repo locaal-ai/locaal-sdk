@@ -4,8 +4,6 @@ project(LocaalSDK VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_STANDARD 11)
-
 # Option to build shared libraries
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_EXAMPLES "Build examples" OFF)
@@ -40,17 +38,6 @@ if(WIN32)
   set_property(CACHE ACCELERATION PROPERTY STRINGS "cpu" "hipblas" "cuda")
 endif()
 
-include(cmake/BuildWhispercpp.cmake)
-target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE Whispercpp)
-
-include(cmake/BuildCTranslate2.cmake)
-include(cmake/BuildSentencepiece.cmake)
-target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE ct2 sentencepiece)
-
-set(USE_SYSTEM_ONNXRUNTIME
-    OFF
-    CACHE STRING "Use system ONNX Runtime")
-
 set(DISABLE_ONNXRUNTIME_GPU
     OFF
     CACHE STRING "Disables GPU support of ONNX Runtime (Only valid on Linux)")
@@ -59,30 +46,13 @@ if(DISABLE_ONNXRUNTIME_GPU)
   target_compile_definitions(${CMAKE_PROJECT_NAME} INTERFACE DISABLE_ONNXRUNTIME_GPU)
 endif()
 
-if(USE_SYSTEM_ONNXRUNTIME)
-  if(OS_LINUX)
-    find_package(Onnxruntime 1.16.3 REQUIRED)
-    set(Onnxruntime_INCLUDE_PATH
-        ${Onnxruntime_INCLUDE_DIR} ${Onnxruntime_INCLUDE_DIR}/onnxruntime
-        ${Onnxruntime_INCLUDE_DIR}/onnxruntime/core/session ${Onnxruntime_INCLUDE_DIR}/onnxruntime/core/providers/cpu)
-    target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE "${Onnxruntime_LIBRARIES}")
-    target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM INTERFACE "${Onnxruntime_INCLUDE_PATH}")
-  else()
-    message(FATAL_ERROR "System ONNX Runtime is only supported on Linux!")
-  endif()
-else()
-  include(cmake/FetchOnnxruntime.cmake)
-endif()
-
+include(cmake/FetchOnnxruntime.cmake)
+include(cmake/BuildWhispercpp.cmake)
+include(cmake/BuildCTranslate2.cmake)
+include(cmake/BuildSentencepiece.cmake)
 include(cmake/BuildICU.cmake)
-# Add ICU to the target
-target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE ICU)
-
 include(cmake/FetchLibav.cmake)
-target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE FFmpeg)
-
 include(cmake/BuildPlatformdirs.cmake)
-target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE sago_platform_folders_lib)
 
 # List of all available modules
 set(LOCAAL_MODULES

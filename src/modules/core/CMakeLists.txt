@@ -4,14 +4,17 @@ add_library(Core
     src/model-find-utils.cpp
 )
 
+target_link_libraries(Core PUBLIC sago_platform_folders_lib)
+target_include_directories(Core
+    PRIVATE
+        ${SAGO_INSTALL_DIR}/include
+)
+
 target_include_directories(Core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-
-# If you have any dependencies for the Core module, link them here
-# target_link_libraries(Core PUBLIC SomeDependency)
 
 set_target_properties(Core PROPERTIES
     OUTPUT_NAME locaal_core

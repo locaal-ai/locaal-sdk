@@ -14,8 +14,7 @@ target_include_directories(Transcription
         $<INSTALL_INTERFACE:include>
 )
 
-# If you have any dependencies for the Core module, link them here
-# target_link_libraries(Core PUBLIC SomeDependency)
+target_link_libraries(Transcription PUBLIC FFmpeg Whispercpp)
 
 set_target_properties(Transcription PROPERTIES
     OUTPUT_NAME locaal_transcription

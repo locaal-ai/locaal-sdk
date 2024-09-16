@@ -1,8 +1,8 @@
 add_library(Translation
-    src/language_codes.cpp 
-    src/translation-language-utils.cpp 
-    src/translation-utils.cpp 
-    src/translation.cpp 
+    src/language_codes.cpp
+    src/translation-language-utils.cpp
+    src/translation-utils.cpp
+    src/translation.cpp
 )
 
 target_include_directories(Translation
@@ -11,8 +11,7 @@ target_include_directories(Translation
         $<INSTALL_INTERFACE:include>
 )
 
-# If you have any dependencies for the Core module, link them here
-# target_link_libraries(Core PUBLIC SomeDependency)
+target_link_libraries(Translation INTERFACE ICU ct2 sentencepiece)
 
 set_target_properties(Translation PROPERTIES
     OUTPUT_NAME locaal_translation
