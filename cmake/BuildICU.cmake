@@ -14,7 +14,7 @@ if(WIN32)
 
   FetchContent_Declare(
     ICU_build
-    DOWNLOAD_EXTRACT_TIMESTAMP
+    DOWNLOAD_EXTRACT_TIMESTAMP 1
     URL ${ICU_URL}
     URL_HASH ${ICU_HASH})
 

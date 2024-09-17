@@ -20,7 +20,7 @@ void build_and_enable_translation(struct transcription_context *gf,
 		Logger::log(Logger::Level::INFO, "Enable translation");
 		gf->translate = true;
 	} else {
-		Logger::log(Logger::Level::ERROR, "Failed to load CT2 model");
+		Logger::log(Logger::Level::ERROR_LOG, "Failed to load CT2 model");
 		gf->translate = false;
 	}
 }
@@ -41,7 +41,7 @@ int build_translation_context(struct translation_context &translation_ctx)
 		translation_ctx.processor.reset(new sentencepiece::SentencePieceProcessor());
 		const auto status = translation_ctx.processor->Load(local_spm_path);
 		if (!status.ok()) {
-			Logger::log(Logger::Level::ERROR, "Failed to load SPM: %s",
+			Logger::log(Logger::Level::ERROR_LOG, "Failed to load SPM: %s",
 				    status.ToString().c_str());
 			return LOCAAL_TRANSLATION_INIT_FAIL;
 		}
@@ -54,7 +54,8 @@ int build_translation_context(struct translation_context &translation_ctx)
 			const auto target_status =
 				translation_ctx.target_processor->Load(target_spm_path);
 			if (!target_status.ok()) {
-				Logger::log(Logger::Level::ERROR, "Failed to load target SPM: %s",
+				Logger::log(Logger::Level::ERROR_LOG,
+					    "Failed to load target SPM: %s",
 					    target_status.ToString().c_str());
 				return LOCAAL_TRANSLATION_INIT_FAIL;
 			}
@@ -103,7 +104,7 @@ int build_translation_context(struct translation_context &translation_ctx)
 		translation_ctx.options->max_input_length = 64;
 		translation_ctx.options->sampling_temperature = 0.1f;
 	} catch (std::exception &e) {
-		Logger::log(Logger::Level::ERROR, "Failed to load CT2 model: %s", e.what());
+		Logger::log(Logger::Level::ERROR_LOG, "Failed to load CT2 model: %s", e.what());
 		return LOCAAL_TRANSLATION_INIT_FAIL;
 	}
 	return LOCAAL_TRANSLATION_INIT_SUCCESS;
@@ -212,7 +213,7 @@ int translate(struct translation_context &translation_ctx, const std::string &te
 		const std::string result_ = translation_ctx.detokenizer(translation_tokens);
 		result = remove_start_punctuation(result_);
 	} catch (std::exception &e) {
-		Logger::log(Logger::Level::ERROR, "Error: %s", e.what());
+		Logger::log(Logger::Level::ERROR_LOG, "Error: %s", e.what());
 		return LOCAAL_TRANSLATION_FAIL;
 	}
 	return LOCAAL_TRANSLATION_SUCCESS;

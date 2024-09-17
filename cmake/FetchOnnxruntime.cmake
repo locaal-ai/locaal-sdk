@@ -45,16 +45,20 @@ endif()
 
 FetchContent_Declare(
   onnxruntime
-  DOWNLOAD_EXTRACT_TIMESTAMP
+  DOWNLOAD_EXTRACT_TIMESTAMP 1
   URL ${Onnxruntime_URL}
   URL_HASH ${Onnxruntime_HASH})
 FetchContent_MakeAvailable(onnxruntime)
 
+add_library(Ort INTERFACE)
 if(APPLE)
   set(Onnxruntime_LIB "${onnxruntime_SOURCE_DIR}/lib/libonnxruntime.${Onnxruntime_VERSION}.dylib")
-  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE "${Onnxruntime_LIB}")
-  target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC "${onnxruntime_SOURCE_DIR}/include")
-  target_sources(${CMAKE_PROJECT_NAME} PRIVATE "${Onnxruntime_LIB}")
+  # target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE "${Onnxruntime_LIB}")
+  # target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC "${onnxruntime_SOURCE_DIR}/include")
+  # target_sources(${CMAKE_PROJECT_NAME} PRIVATE "${Onnxruntime_LIB}")
+  target_link_libraries(Ort INTERFACE "${Onnxruntime_LIB}")
+  target_include_directories(Ort INTERFACE "${onnxruntime_SOURCE_DIR}/include")
+
   set_property(SOURCE "${Onnxruntime_LIB}" PROPERTY MACOSX_PACKAGE_LOCATION Frameworks)
   source_group("Frameworks" FILES "${Onnxruntime_LIB}")
   # add a codesigning step
@@ -69,7 +73,7 @@ if(APPLE)
       ${CMAKE_INSTALL_NAME_TOOL} -change "@rpath/libonnxruntime.${Onnxruntime_VERSION}.dylib"
       "@loader_path/../Frameworks/libonnxruntime.${Onnxruntime_VERSION}.dylib" $<TARGET_FILE:${CMAKE_PROJECT_NAME}>)
 elseif(MSVC)
-  add_library(Ort INTERFACE)
+  
   set(Onnxruntime_LIB_NAMES onnxruntime;onnxruntime_providers_shared)
   foreach(lib_name IN LISTS Onnxruntime_LIB_NAMES)
     add_library(Ort::${lib_name} SHARED IMPORTED)
@@ -79,8 +83,6 @@ elseif(MSVC)
     target_link_libraries(Ort INTERFACE Ort::${lib_name})
     install(FILES ${onnxruntime_SOURCE_DIR}/lib/${lib_name}.dll DESTINATION "obs-plugins/64bit")
   endforeach()
-
-  target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE Ort)
 
   # add exported target install
   install(TARGETS Ort EXPORT OrtTargets)
@@ -97,7 +99,11 @@ else()
                                  "${onnxruntime_SOURCE_DIR}/lib/libonnxruntime_providers_shared.so")
   endif()
   install(FILES ${Onnxruntime_INSTALL_LIBS} DESTINATION "${CMAKE_INSTALL_LIBDIR}/obs-plugins/${CMAKE_PROJECT_NAME}")
-  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${Onnxruntime_LINK_LIBS})
-  target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC "${onnxruntime_SOURCE_DIR}/include")
-  set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN/${CMAKE_PROJECT_NAME}")
+
+  target_link_libraries(Ort INTERFACE ${Onnxruntime_LINK_LIBS})
+  target_include_directories(Ort INTERFACE "${onnxruntime_SOURCE_DIR}/include")
+
+  # target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${Onnxruntime_LINK_LIBS})
+  # target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC "${onnxruntime_SOURCE_DIR}/include")
+  # set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN/${CMAKE_PROJECT_NAME}")
 endif()

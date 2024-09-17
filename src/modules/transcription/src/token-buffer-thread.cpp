@@ -1,6 +1,3 @@
-#include <ctranslate2/translation.h>
-#include <ctranslate2/translator.h>
-#include <sentencepiece_processor.h>
 
 #include "token-buffer-thread.h"
 #include "whisper-utils.h"

@@ -9,6 +9,8 @@
 #include <condition_variable>
 #include <functional>
 #include <string>
+#include <deque>
+#include <optional>
 
 #include "silero-vad-onnx.h"
 #include "whisper-processing.h"

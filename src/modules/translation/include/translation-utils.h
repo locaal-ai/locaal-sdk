@@ -1,7 +1,7 @@
 #ifndef TRANSLATION_UTILS_H
 #define TRANSLATION_UTILS_H
 
-#include "transcription-filter-data.h"
+#include "transcription-context.h"
 
 void start_translation(struct transcription_context *gf);
 

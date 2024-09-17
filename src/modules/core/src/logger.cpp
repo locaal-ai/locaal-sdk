@@ -39,7 +39,7 @@ std::string Logger::getLevelString(Level level)
 		return "INFO";
 	case Level::WARNING:
 		return "WARNING";
-	case Level::ERROR:
+	case Level::ERROR_LOG:
 		return "ERROR";
 	default:
 		return "UNKNOWN";

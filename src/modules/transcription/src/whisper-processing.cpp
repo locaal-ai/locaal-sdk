@@ -1,9 +1,7 @@
 #include <whisper.h>
 
-#include <util/profiler.hpp>
-
 #include "logger.h"
-#include "transcription-filter-data.h"
+#include "transcription-context.h"
 #include "whisper-processing.h"
 #include "whisper-utils.h"
 #include "transcription-utils.h"
@@ -14,12 +12,15 @@
 #include <Windows.h>
 #endif
 
-#include "model-utils/model-find-utils.h"
+#include "model-find-utils.h"
 #include "vad-processing.h"
 
 #include <algorithm>
 #include <chrono>
 #include <regex>
+#include <thread>
+#include <filesystem>
+#include <cstdlib>
 
 struct whisper_context *init_whisper_context(const std::string &model_path_in,
 					     struct transcription_context *gf)
@@ -33,10 +34,10 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 			Logger::Level::INFO,
 			"Model path is a directory, not a file, looking for .bin file in folder");
 		// look for .bin file
-		const std::string model_bin_file = find_bin_file_in_folder(model_path);
+		const std::string model_bin_file = find_ext_file_in_folder(model_path, ".bin");
 		if (model_bin_file.empty()) {
-			Logger::log(Logger::Level::ERROR, "Model bin file not found in folder: %s",
-				    model_path.c_str());
+			Logger::log(Logger::Level::ERROR_LOG,
+				    "Model bin file not found in folder: %s", model_path.c_str());
 			return nullptr;
 		}
 		model_path = model_bin_file;
@@ -44,14 +45,9 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 
 	whisper_log_set(
 		[](enum ggml_log_level level, const char *text, void *user_data) {
-			UNUSED_PARAMETER(level);
 			struct transcription_context *ctx =
 				static_cast<struct transcription_context *>(user_data);
-			// remove trailing newline
-			char *text_copy = bstrdup(text);
-			text_copy[strcspn(text_copy, "\n")] = 0;
-			Logger::log(ctx->log_level, "Whisper: %s", text_copy);
-			bfree(text_copy);
+			Logger::log(ctx->log_level, "Whisper: %s", text);
 		},
 		gf);
 
@@ -94,8 +90,8 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 		// Read model into buffer
 		std::ifstream modelFile(model_path_ws, std::ios::binary);
 		if (!modelFile.is_open()) {
-			Logger::log(Logger::Level::ERROR, "Failed to open whisper model file %s",
-				    model_path.c_str());
+			Logger::log(Logger::Level::ERROR_LOG,
+				    "Failed to open whisper model file %s", model_path.c_str());
 			return nullptr;
 		}
 		modelFile.seekg(0, std::ios::end);
@@ -112,12 +108,12 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 		ctx = whisper_init_from_file_with_params(model_path.c_str(), cparams);
 #endif
 	} catch (const std::exception &e) {
-		Logger::log(Logger::Level::ERROR, "Exception while loading whisper model: %s",
+		Logger::log(Logger::Level::ERROR_LOG, "Exception while loading whisper model: %s",
 			    e.what());
 		return nullptr;
 	}
 	if (ctx == nullptr) {
-		Logger::log(Logger::Level::ERROR, "Failed to load whisper model");
+		Logger::log(Logger::Level::ERROR_LOG, "Failed to load whisper model");
 		return nullptr;
 	}
 
@@ -132,12 +128,12 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 						     int vad_state = VAD_STATE_WAS_OFF)
 {
 	if (gf == nullptr) {
-		Logger::log(Logger::Level::ERROR, "run_whisper_inference: gf is null");
+		Logger::log(Logger::Level::ERROR_LOG, "run_whisper_inference: gf is null");
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
 
 	if (pcm32f_data_ == nullptr || pcm32f_num_samples == 0) {
-		Logger::log(Logger::Level::ERROR,
+		Logger::log(Logger::Level::ERROR_LOG,
 			    "run_whisper_inference: pcm32f_data is null or size is 0");
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
@@ -167,7 +163,7 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 			"Speech segment is less than 1 second, padding with white noise to 1 second");
 		const size_t new_size = (size_t)(1.01f * (float)(WHISPER_SAMPLE_RATE));
 		// create a new buffer and copy the data to it in the middle
-		pcm32f_data = (float *)bzalloc(new_size * sizeof(float));
+		pcm32f_data = (float *)malloc(new_size * sizeof(float));
 
 		// add low volume white noise
 		const float noise_level = 0.01f;
@@ -208,17 +204,17 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 		whisper_full_result = whisper_full(gf->whisper_context, gf->whisper_params,
 						   pcm32f_data, (int)pcm32f_size);
 	} catch (const std::exception &e) {
-		Logger::log(Logger::Level::ERROR,
+		Logger::log(Logger::Level::ERROR_LOG,
 			    "Whisper exception: %s. Filter restart is required", e.what());
 		whisper_free(gf->whisper_context);
 		gf->whisper_context = nullptr;
 		if (should_free_buffer) {
-			bfree(pcm32f_data);
+			free(pcm32f_data);
 		}
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
 	if (should_free_buffer) {
-		bfree(pcm32f_data);
+		free(pcm32f_data);
 	}
 
 	std::string language = gf->whisper_params.language;
@@ -321,10 +317,10 @@ void run_inference_and_callbacks(transcription_context *gf, uint64_t start_offse
 {
 	// get the data from the entire whisper buffer
 	// add 50ms of silence to the beginning and end of the buffer
-	const size_t pcm32f_size = gf->whisper_buffer.size / sizeof(float);
+	const size_t pcm32f_size = gf->whisper_buffer.size();
 	const size_t pcm32f_size_with_silence = pcm32f_size + 2 * WHISPER_SAMPLE_RATE / 100;
 	// allocate a new buffer and copy the data to it
-	float *pcm32f_data = (float *)bzalloc(pcm32f_size_with_silence * sizeof(float));
+	float *pcm32f_data = (float *)malloc(pcm32f_size_with_silence * sizeof(float));
 	if (vad_state == VAD_STATE_PARTIAL) {
 		// peek instead of pop, since this is a partial run that keeps the data in the buffer
 		circlebuf_peek_front(&gf->whisper_buffer, pcm32f_data + WHISPER_SAMPLE_RATE / 100,
@@ -346,13 +342,13 @@ void run_inference_and_callbacks(transcription_context *gf, uint64_t start_offse
 	}
 
 	// free the buffer
-	bfree(pcm32f_data);
+	free(pcm32f_data);
 }
 
 void whisper_loop(void *data)
 {
 	if (data == nullptr) {
-		Logger::log(Logger::Level::ERROR, "whisper_loop: data is null");
+		Logger::log(Logger::Level::ERROR_LOG, "whisper_loop: data is null");
 		return;
 	}
 
@@ -362,16 +358,10 @@ void whisper_loop(void *data)
 
 	vad_state current_vad_state = {false, now_ms(), 0, 0};
 
-	const char *whisper_loop_name = "Whisper loop";
-	profile_register_root(whisper_loop_name, 50 * 1000 * 1000);
-
 	// Thread main loop
 	while (true) {
-		ProfileScope(whisper_loop_name);
 		{
-			ProfileScope("lock whisper ctx");
 			std::lock_guard<std::mutex> lock(gf->whisper_ctx_mutex);
-			ProfileScope("locked whisper ctx");
 			if (gf->whisper_context == nullptr) {
 				Logger::log(Logger::Level::WARNING,
 					    "Whisper context is null, exiting thread");
@@ -404,7 +394,7 @@ void whisper_loop(void *data)
 		// This will wake up the thread if there is new data in the input buffer
 		// or if the whisper context is null
 		std::unique_lock<std::mutex> lock(gf->whisper_ctx_mutex);
-		if (gf->input_buffers->size == 0) {
+		if (gf->input_buffers[0].empty()) {
 			gf->wshiper_thread_cv.wait_for(lock, std::chrono::milliseconds(50));
 		}
 	}

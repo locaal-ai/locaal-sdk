@@ -8,7 +8,7 @@ if(WIN32)
 
     FetchContent_Declare(
       FFmpeg_fetch
-      DOWNLOAD_EXTRACT_TIMESTAMP
+      DOWNLOAD_EXTRACT_TIMESTAMP 1
       URL ${FFMPEG_URL}
       URL_HASH ${FFMPEG_HASH}
     )

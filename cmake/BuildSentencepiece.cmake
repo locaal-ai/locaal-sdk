@@ -6,6 +6,7 @@ if(APPLE)
 
   FetchContent_Declare(
     sentencepiece_fetch
+    DOWNLOAD_EXTRACT_TIMESTAMP 1
     URL https://github.com/occ-ai/obs-ai-ctranslate2-dep/releases/download/1.1.1/libsentencepiece-macos-Release-1.1.1.tar.gz
     URL_HASH SHA256=c911f1e84ea94925a8bc3fd3257185b2e18395075509c8659cc7003a979e0b32)
   FetchContent_MakeAvailable(sentencepiece_fetch)
@@ -17,7 +18,7 @@ elseif(WIN32)
 
   FetchContent_Declare(
     sentencepiece_fetch
-    DOWNLOAD_EXTRACT_TIMESTAMP
+    DOWNLOAD_EXTRACT_TIMESTAMP 1
     URL https://github.com/occ-ai/obs-ai-ctranslate2-dep/releases/download/1.1.1/sentencepiece-windows-0.2.0-Release.zip
     URL_HASH SHA256=846699c7fa1e8918b71ed7f2bd5cd60e47e51105e1d84e3192919b4f0f10fdeb)
   FetchContent_MakeAvailable(sentencepiece_fetch)

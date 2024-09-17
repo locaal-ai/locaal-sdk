@@ -6,7 +6,7 @@
 
 class Logger {
 public:
-	enum class Level { DEBUG, INFO, WARNING, ERROR };
+	enum class Level { DEBUG = 0, INFO, WARNING, ERROR_LOG };
 
 	using LogCallback = std::function<void(Level, const std::string &)>;
 

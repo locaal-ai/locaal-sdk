@@ -27,7 +27,7 @@ elseif(WIN32)
   if(${ACCELERATION} STREQUAL "cpu" OR ${ACCELERATION} STREQUAL "hipblas")
     FetchContent_Declare(
       ctranslate2_fetch
-      DOWNLOAD_EXTRACT_TIMESTAMP
+      DOWNLOAD_EXTRACT_TIMESTAMP 1
       URL https://github.com/occ-ai/obs-ai-ctranslate2-dep/releases/download/1.2.0/libctranslate2-windows-4.1.1-Release-cpu.zip
       URL_HASH SHA256=30ff8b2499b8d3b5a6c4d6f7f8ddbc89e745ff06e0050b645e3b7c9b369451a3)
   else()
@@ -38,7 +38,8 @@ elseif(WIN32)
     FetchContent_Declare(
       ctranslate2_fetch
       URL https://github.com/occ-ai/obs-ai-ctranslate2-dep/releases/download/1.2.0/libctranslate2-windows-4.1.1-Release-cuda12.2.0.zip
-      URL_HASH SHA256=131724d510f9f2829970953a1bc9e4e8fb7b4cbc8218e32270dcfe6172a51558)
+      URL_HASH SHA256=131724d510f9f2829970953a1bc9e4e8fb7b4cbc8218e32270dcfe6172a51558
+      DOWNLOAD_EXTRACT_TIMESTAMP 1)
   endif()
 
   FetchContent_MakeAvailable(ctranslate2_fetch)

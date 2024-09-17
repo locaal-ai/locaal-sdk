@@ -1,7 +1,7 @@
 include(FetchContent)
 
 set(LibCurl_VERSION "8.4.0-3")
-set(LibCurl_BASEURL "https://github.com/occ-ai/obs-ai-libcurl-dep/releases/download/${LibCurl_VERSION}")
+set(LibCurl_BASEURL "https://github.com/locaal-ai/obs-ai-libcurl-dep/releases/download/${LibCurl_VERSION}")
 
 if(${CMAKE_BUILD_TYPE} STREQUAL Release OR ${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
   set(LibCurl_BUILD_TYPE Release)
@@ -35,11 +35,13 @@ else()
   endif()
 endif()
 
+message(STATUS "Fetching libcurl from ${LibCurl_URL}")
+
 FetchContent_Declare(
   libcurl_fetch
-  DOWNLOAD_EXTRACT_TIMESTAMP
   URL ${LibCurl_URL}
-  URL_HASH ${LibCurl_HASH})
+  URL_HASH ${LibCurl_HASH}
+  DOWNLOAD_EXTRACT_TIMESTAMP 1)
 FetchContent_MakeAvailable(libcurl_fetch)
 
 if(MSVC)

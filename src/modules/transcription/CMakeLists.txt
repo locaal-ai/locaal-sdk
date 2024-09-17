@@ -14,7 +14,7 @@ target_include_directories(Transcription
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(Transcription PUBLIC FFmpeg Whispercpp)
+target_link_libraries(Transcription PUBLIC Core FFmpeg Whispercpp Ort)
 
 set_target_properties(Transcription PROPERTIES
     OUTPUT_NAME locaal_transcription

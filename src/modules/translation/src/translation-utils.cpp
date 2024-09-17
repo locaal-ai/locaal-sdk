@@ -4,7 +4,7 @@
 #include "translation.h"
 #include "translation-utils.h"
 #include "logger.h"
-#include "model-utils/model-downloader.h"
+#include "model-downloader.h"
 
 void start_translation(struct transcription_context *gf)
 {
@@ -13,7 +13,7 @@ void start_translation(struct transcription_context *gf)
 	if (gf->translation_model_index == "!!!external!!!") {
 		Logger::log(Logger::Level::INFO, "External model selected.");
 		if (gf->translation_model_path_external.empty()) {
-			Logger::log(Logger::Level::ERROR, "External model path is empty.");
+			Logger::log(Logger::Level::ERROR_LOG, "External model path is empty.");
 			gf->translate = false;
 			return;
 		}
@@ -35,7 +35,8 @@ void start_translation(struct transcription_context *gf)
 						    "CT2 model download complete");
 					build_and_enable_translation(gf, path);
 				} else {
-					Logger::log(Logger::Level::ERROR, "Model download failed");
+					Logger::log(Logger::Level::ERROR_LOG,
+						    "Model download failed");
 					gf->translate = false;
 				}
 			});

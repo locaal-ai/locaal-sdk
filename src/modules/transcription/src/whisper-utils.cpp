@@ -30,7 +30,7 @@ void start_whisper_thread_with_path(struct transcription_context *gf,
 		    whisper_model_path.c_str(), silero_vad_model_file);
 	std::lock_guard<std::mutex> lock(gf->whisper_ctx_mutex);
 	if (gf->whisper_context != nullptr) {
-		Logger::log(Logger::Level::ERROR,
+		Logger::log(Logger::Level::ERROR_LOG,
 			    "cannot init whisper: whisper_context is not null");
 		return;
 	}
@@ -41,7 +41,7 @@ void start_whisper_thread_with_path(struct transcription_context *gf,
 	Logger::log(gf->log_level, "Create whisper context");
 	gf->whisper_context = init_whisper_context(whisper_model_path, gf);
 	if (gf->whisper_context == nullptr) {
-		Logger::log(Logger::Level::ERROR, "Failed to initialize whisper context");
+		Logger::log(Logger::Level::ERROR_LOG, "Failed to initialize whisper context");
 		return;
 	}
 	gf->whisper_model_file_currently_loaded = whisper_model_path;

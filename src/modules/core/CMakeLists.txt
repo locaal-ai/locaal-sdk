@@ -4,7 +4,7 @@ add_library(Core
     src/model-find-utils.cpp
 )
 
-target_link_libraries(Core PUBLIC sago_platform_folders_lib)
+target_link_libraries(Core PUBLIC sago_platform_folders_lib libcurl)
 target_include_directories(Core
     PRIVATE
         ${SAGO_INSTALL_DIR}/include
