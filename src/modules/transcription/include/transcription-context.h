@@ -145,7 +145,7 @@ void clear_current_caption(transcription_context *gf_);
 
 // Callback sent when the VAD finds an audio chunk. Sample rate = WHISPER_SAMPLE_RATE, channels = 1
 // The audio chunk is in 32-bit float format
-void audio_chunk_callback(struct transcription_context *gf, const float *pcm32f_data, size_t frames,
+void audio_chunk_callback(struct transcription_context *gf, const std::vector<float> pcm32f_data,
 			  int vad_state, const DetectionResultWithText &result);
 
 #endif /* TRANSCRIPTION_CONTEXT_H */

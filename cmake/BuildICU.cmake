@@ -101,6 +101,10 @@ foreach(lib ${ICU_LIBRARIES})
 endforeach()
 target_include_directories(ICU INTERFACE $<BUILD_INTERFACE:${ICU_INCLUDE_DIR}>
                                                 $<INSTALL_INTERFACE:include>)
+set_target_properties(ICU PROPERTIES EXPORT_NAME ICU)
+
+# Export the targets file
+install(DIRECTORY ${ICU_INCLUDE_DIR}/unicode DESTINATION include)
 
 # add exported target
 install(TARGETS ICU EXPORT ICUTargets)

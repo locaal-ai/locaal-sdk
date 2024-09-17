@@ -1,7 +1,6 @@
 #include "translation.h"
 #include "logger.h"
 #include "model-find-utils.h"
-#include "transcription-context.h"
 #include "language_codes.h"
 #include "translation-language-utils.h"
 
@@ -10,18 +9,18 @@
 
 #include <regex>
 
-void build_and_enable_translation(struct transcription_context *gf,
+void build_and_enable_translation(struct translation_context *ctx,
 				  const std::string &model_file_path)
 {
-	std::lock_guard<std::mutex> lock(gf->whisper_ctx_mutex);
+	std::lock_guard<std::mutex> lock(ctx->model_mutex);
 
-	gf->translation_ctx.local_model_folder_path = model_file_path;
-	if (build_translation_context(gf->translation_ctx) == LOCAAL_TRANSLATION_INIT_SUCCESS) {
-		Logger::log(Logger::Level::INFO, "Enable translation");
-		gf->translate = true;
+	ctx->local_model_folder_path = model_file_path;
+	if (build_translation_context(*ctx) == LOCAAL_TRANSLATION_INIT_SUCCESS) {
+		Logger::log(Logger::Level::INFO, "Model loaded");
+		ctx->model_loaded = true;
 	} else {
 		Logger::log(Logger::Level::ERROR_LOG, "Failed to load CT2 model");
-		gf->translate = false;
+		ctx->model_loaded = false;
 	}
 }
 

@@ -154,8 +154,7 @@ vad_state vad_based_segmentation(transcription_context *gf, vad_state last_vad_s
 		}
 
 		if (gf->enable_audio_chunks_callback) {
-			audio_chunk_callback(gf, vad_input.data(), vad_input.size(),
-					     VAD_STATE_IS_OFF,
+			audio_chunk_callback(gf, vad_input, VAD_STATE_IS_OFF,
 					     {DETECTION_RESULT_SILENCE,
 					      "[silence]",
 					      current_vad_state.start_ts_offest_ms,

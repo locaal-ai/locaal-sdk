@@ -6,42 +6,37 @@
 #include "logger.h"
 #include "model-downloader.h"
 
-void start_translation(struct transcription_context *gf)
+void start_translation(struct translation_context *ctx, const std::string &translation_model_index)
 {
 	Logger::log(Logger::Level::INFO, "Starting translation...");
 
-	if (gf->translation_model_index == "!!!external!!!") {
-		Logger::log(Logger::Level::INFO, "External model selected.");
-		if (gf->translation_model_path_external.empty()) {
-			Logger::log(Logger::Level::ERROR_LOG, "External model path is empty.");
-			gf->translate = false;
-			return;
-		}
-		std::string model_file_found = gf->translation_model_path_external;
-		build_and_enable_translation(gf, model_file_found);
-		return;
-	}
-
-	const ModelInfo &translation_model_info = models_info[gf->translation_model_index];
+	const ModelInfo &translation_model_info = models_info[translation_model_index];
 	std::string model_file_found = find_model_folder(translation_model_info);
 	if (model_file_found == "") {
 		Logger::log(Logger::Level::INFO,
 			    "Translation CT2 model does not exist. Downloading...");
-		download_model_with_ui_dialog(
+		download_model(
 			translation_model_info,
-			[gf, model_file_found](int download_status, const std::string &path) {
+			[ctx, model_file_found](int download_status, const std::string &path) {
 				if (download_status == 0) {
 					Logger::log(Logger::Level::INFO,
 						    "CT2 model download complete");
-					build_and_enable_translation(gf, path);
+					build_and_enable_translation(ctx, path);
 				} else {
 					Logger::log(Logger::Level::ERROR_LOG,
 						    "Model download failed");
-					gf->translate = false;
+					ctx->model_loaded = false;
 				}
+			},
+			[](int progress) {
+				Logger::log(Logger::Level::INFO, "Download progress: %d", progress);
+			},
+			[](int error, const std::string &message) {
+				Logger::log(Logger::Level::ERROR_LOG, "Download error: %s",
+					    message.c_str());
 			});
 	} else {
 		// Model exists, just load it
-		build_and_enable_translation(gf, model_file_found);
+		build_and_enable_translation(ctx, model_file_found);
 	}
 }

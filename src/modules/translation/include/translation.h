@@ -6,6 +6,7 @@
 #include <deque>
 #include <functional>
 #include <memory>
+#include <mutex>
 
 enum InputTokenizationStyle { INPUT_TOKENIZAION_M2M100 = 0, INPUT_TOKENIZAION_T5 };
 
@@ -31,10 +32,13 @@ struct translation_context {
 	// How many sentences to use as context for the next translation
 	int add_context;
 	InputTokenizationStyle input_tokenization_style;
+	// model mutex
+	std::mutex model_mutex;
+	bool model_loaded;
 };
 
 int build_translation_context(struct translation_context &translation_ctx);
-void build_and_enable_translation(struct transcription_context *gf,
+void build_and_enable_translation(struct translation_context *gf,
 				  const std::string &model_file_path);
 
 int translate(struct translation_context &translation_ctx, const std::string &text,

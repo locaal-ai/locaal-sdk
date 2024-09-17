@@ -38,12 +38,17 @@ std::vector<std::string> split_words(const std::string &str_copy);
 // trim (strip) string from leading and trailing whitespaces
 template<typename StringLike> StringLike trim(const StringLike &str)
 {
+	using CharType = typename StringLike::value_type;
+
 	StringLike str_copy = str;
 	str_copy.erase(str_copy.begin(),
-		       std::find_if(str_copy.begin(), str_copy.end(),
-				    [](unsigned char ch) { return !std::isspace(ch); }));
+		       std::find_if(str_copy.begin(), str_copy.end(), [](CharType ch) {
+			       return !std::isspace(static_cast<unsigned char>(ch));
+		       }));
 	str_copy.erase(std::find_if(str_copy.rbegin(), str_copy.rend(),
-				    [](unsigned char ch) { return !std::isspace(ch); })
+				    [](CharType ch) {
+					    return !std::isspace(static_cast<unsigned char>(ch));
+				    })
 			       .base(),
 		       str_copy.end());
 	return str_copy;

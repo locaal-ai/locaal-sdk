@@ -11,7 +11,7 @@ target_include_directories(Translation
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(Translation INTERFACE Core ICU ct2 sentencepiece)
+target_link_libraries(Translation PRIVATE Core ICU ct2 sentencepiece)
 
 set_target_properties(Translation PROPERTIES
     OUTPUT_NAME locaal_translation

@@ -95,7 +95,7 @@ void VadIterator::reset_states(bool reset_state)
 {
 	if (reset_state) {
 		// Call reset before each audio start
-		std::memset(_state.data(), 0.0f, _state.size() * sizeof(float));
+		std::memset(_state.data(), 0, (int)_state.size() * sizeof(float));
 		triggered = false;
 	}
 	temp_end = 0;

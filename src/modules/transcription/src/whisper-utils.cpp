@@ -64,15 +64,15 @@ std::pair<int, int> findStartOfOverlap(const std::vector<whisper_token_data> &se
 			if (seq1[i].id == seq2[j].id) {
 				// Check if the next token in both sequences is the same
 				if (seq1[i + 1].id == seq2[j + 1].id) {
-					return {i, j};
+					return {(int)i, (int)j};
 				}
 				// 1-skip check on seq1
 				if (i + 2 < seq1.size() && seq1[i + 2].id == seq2[j + 1].id) {
-					return {i, j};
+					return {(int)i, (int)j};
 				}
 				// 1-skip check on seq2
 				if (j + 2 < seq2.size() && seq1[i + 1].id == seq2[j + 2].id) {
-					return {i, j};
+					return {(int)i, (int)j};
 				}
 			}
 		}

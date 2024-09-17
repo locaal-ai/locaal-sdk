@@ -122,9 +122,8 @@ struct whisper_context *init_whisper_context(const std::string &model_path_in,
 }
 
 struct DetectionResultWithText run_whisper_inference(struct transcription_context *gf,
-						     const float *pcm32f_data_,
-						     size_t pcm32f_num_samples, uint64_t t0 = 0,
-						     uint64_t t1 = 0,
+						     const std::vector<float> &pcm32f_data_,
+						     uint64_t t0 = 0, uint64_t t1 = 0,
 						     int vad_state = VAD_STATE_WAS_OFF)
 {
 	if (gf == nullptr) {
@@ -132,7 +131,7 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
 	}
 
-	if (pcm32f_data_ == nullptr || pcm32f_num_samples == 0) {
+	if (pcm32f_data_.empty()) {
 		Logger::log(Logger::Level::ERROR_LOG,
 			    "run_whisper_inference: pcm32f_data is null or size is 0");
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
@@ -146,24 +145,24 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 	}
 
 	Logger::log(gf->log_level, "%s: processing %d samples, %.3f sec, %d threads", __func__,
-		    int(pcm32f_num_samples), float(pcm32f_num_samples) / WHISPER_SAMPLE_RATE,
+		    int(pcm32f_data_.size()), float(pcm32f_data_.size()) / WHISPER_SAMPLE_RATE,
 		    gf->whisper_params.n_threads);
 
 	bool should_free_buffer = false;
-	float *pcm32f_data = (float *)pcm32f_data_;
-	size_t pcm32f_size = pcm32f_num_samples;
+	std::vector<float> pcm32f_data;
+	size_t pcm32f_size = pcm32f_data_.size();
 
 	// incoming duration in ms
 	const uint64_t incoming_duration_ms =
-		(uint64_t)(pcm32f_num_samples * 1000 / WHISPER_SAMPLE_RATE);
+		(uint64_t)(pcm32f_data_.size() * 1000 / WHISPER_SAMPLE_RATE);
 
-	if (pcm32f_num_samples < WHISPER_SAMPLE_RATE) {
+	if (pcm32f_data_.size() < WHISPER_SAMPLE_RATE) {
 		Logger::log(
 			gf->log_level,
 			"Speech segment is less than 1 second, padding with white noise to 1 second");
 		const size_t new_size = (size_t)(1.01f * (float)(WHISPER_SAMPLE_RATE));
 		// create a new buffer and copy the data to it in the middle
-		pcm32f_data = (float *)malloc(new_size * sizeof(float));
+		pcm32f_data.resize(new_size);
 
 		// add low volume white noise
 		const float noise_level = 0.01f;
@@ -172,8 +171,8 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 				noise_level * ((float)rand() / (float)RAND_MAX * 2.0f - 1.0f);
 		}
 
-		memcpy(pcm32f_data + (new_size - pcm32f_num_samples) / 2, pcm32f_data_,
-		       pcm32f_num_samples * sizeof(float));
+		std::copy(pcm32f_data_.begin(), pcm32f_data_.end(),
+			  pcm32f_data.begin() + (new_size - pcm32f_size) / 2);
 		pcm32f_size = new_size;
 		should_free_buffer = true;
 	}
@@ -202,19 +201,13 @@ struct DetectionResultWithText run_whisper_inference(struct transcription_contex
 	gf->whisper_params.duration_ms = (int)(whisper_duration_ms);
 	try {
 		whisper_full_result = whisper_full(gf->whisper_context, gf->whisper_params,
-						   pcm32f_data, (int)pcm32f_size);
+						   pcm32f_data.data(), (int)pcm32f_size);
 	} catch (const std::exception &e) {
 		Logger::log(Logger::Level::ERROR_LOG,
 			    "Whisper exception: %s. Filter restart is required", e.what());
 		whisper_free(gf->whisper_context);
 		gf->whisper_context = nullptr;
-		if (should_free_buffer) {
-			free(pcm32f_data);
-		}
 		return {DETECTION_RESULT_UNKNOWN, "", t0, t1, {}, ""};
-	}
-	if (should_free_buffer) {
-		free(pcm32f_data);
 	}
 
 	std::string language = gf->whisper_params.language;
@@ -316,33 +309,25 @@ void run_inference_and_callbacks(transcription_context *gf, uint64_t start_offse
 				 uint64_t end_offset_ms, int vad_state)
 {
 	// get the data from the entire whisper buffer
-	// add 50ms of silence to the beginning and end of the buffer
 	const size_t pcm32f_size = gf->whisper_buffer.size();
-	const size_t pcm32f_size_with_silence = pcm32f_size + 2 * WHISPER_SAMPLE_RATE / 100;
+
 	// allocate a new buffer and copy the data to it
-	float *pcm32f_data = (float *)malloc(pcm32f_size_with_silence * sizeof(float));
-	if (vad_state == VAD_STATE_PARTIAL) {
-		// peek instead of pop, since this is a partial run that keeps the data in the buffer
-		circlebuf_peek_front(&gf->whisper_buffer, pcm32f_data + WHISPER_SAMPLE_RATE / 100,
-				     pcm32f_size * sizeof(float));
-	} else {
-		circlebuf_pop_front(&gf->whisper_buffer, pcm32f_data + WHISPER_SAMPLE_RATE / 100,
-				    pcm32f_size * sizeof(float));
+	std::vector<float> pcm32f_data(pcm32f_size);
+	std::copy(gf->whisper_buffer.begin(), gf->whisper_buffer.end(), pcm32f_data.begin());
+
+	if (vad_state != VAD_STATE_PARTIAL) {
+		// clear the whisper buffer if we are not in partial state
+		gf->whisper_buffer.clear();
 	}
 
 	struct DetectionResultWithText inference_result =
-		run_whisper_inference(gf, pcm32f_data, pcm32f_size_with_silence, start_offset_ms,
-				      end_offset_ms, vad_state);
+		run_whisper_inference(gf, pcm32f_data, start_offset_ms, end_offset_ms, vad_state);
 	// output inference result to a text source
 	set_text_callback(gf, inference_result);
 
 	if (gf->enable_audio_chunks_callback && vad_state != VAD_STATE_PARTIAL) {
-		audio_chunk_callback(gf, pcm32f_data, pcm32f_size_with_silence, vad_state,
-				     inference_result);
+		audio_chunk_callback(gf, pcm32f_data, vad_state, inference_result);
 	}
-
-	// free the buffer
-	free(pcm32f_data);
 }
 
 void whisper_loop(void *data)
