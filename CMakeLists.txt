@@ -84,6 +84,10 @@ endforeach()
 
 target_link_libraries(${CMAKE_PROJECT_NAME} INTERFACE ${LOCAAL_ENABLED_MODULES})
 
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
 # Generate and install package configuration files
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
