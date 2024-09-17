@@ -25,8 +25,8 @@ if ($Clean) {
 }
 
 # Configure step
-$configureCommand = "cmake -S . -B $buildDir -DCMAKE_BUILD_TYPE=Release `
-    -DLocaalSDK_FIND_COMPONENTS=`"Core;Transcription;Translation`" $verboseFlag `
+$configureCommand = "cmake -S . -B $buildDir -DCMAKE_BUILD_TYPE=Release ``
+    -DLocaalSDK_FIND_COMPONENTS=`"Core;Transcription;Translation`" $verboseFlag ``
     -DBUILD_EXAMPLES=ON"
 Write-Host "Executing configure command: $configureCommand"
 Invoke-Expression $configureCommand

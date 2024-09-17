@@ -19,7 +19,7 @@ int main() {
     });
 
     // Set the callbacks for the transcription
-    tt.setTranscriptionCallback([](const locaal::DetectionResultWithText &result) {
+    tt.setTranscriptionCallback([](const locaal::TranscriptionResult &result) {
         // Print the transcription result
         std::cout << "Transcription: " << result.text << std::endl;
     });
@@ -50,7 +50,7 @@ int main() {
         audio_capture.getAudioData(1000, audio_data);
 
         // Process the audio data for transcription
-        tt.processAudio(audio_data.data(), audio_data.size());
+        tt.processAudio(audio_data);
     }
 
     return 0;

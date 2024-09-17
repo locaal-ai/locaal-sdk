@@ -3,6 +3,7 @@ add_library(Transcription
     src/silero-vad-onnx.cpp
     src/token-buffer-thread.cpp
     src/transcription-utils.cpp
+    src/transcription.cpp
     src/vad-processing.cpp
     src/whisper-model-utils.cpp
     src/whisper-processing.cpp
