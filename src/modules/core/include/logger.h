@@ -11,10 +11,13 @@ public:
 	using LogCallback = std::function<void(Level, const std::string &)>;
 
 	static void setLogCallback(LogCallback callback);
+	static void setLogLevel(Level level);
 	static void Logger::log(Level level, const std::string &format, ...);
+	// set log level
 
 private:
 	static LogCallback s_logCallback;
+	static Level s_logLevel;
 	static std::string getLevelString(Level level);
 };
 

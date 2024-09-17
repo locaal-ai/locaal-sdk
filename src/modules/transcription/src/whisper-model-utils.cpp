@@ -45,19 +45,29 @@ void update_whisper_model(struct transcription_context *gf, const std::string ne
 		std::string model_file_found = find_model_ext_file(model_info, ".bin");
 		if (model_file_found == "") {
 			Logger::log(Logger::Level::WARNING, "Whisper model does not exist");
-			download_model(model_info, [gf, new_model_path, silero_vad_model_file](
-							   int download_status,
-							   const std::string &path) {
-				if (download_status == DownloadStatus::DOWNLOAD_STATUS_OK) {
-					Logger::log(Logger::Level::INFO, "Model download complete");
-					gf->whisper_model_path = new_model_path;
-					start_whisper_thread_with_path(
-						gf, path, silero_vad_model_file.c_str());
-				} else {
-					Logger::log(Logger::Level::ERROR_LOG,
-						    "Model download failed");
-				}
-			});
+			download_model(
+				model_info,
+				[gf, new_model_path, silero_vad_model_file](
+					int download_status, const std::string &path) {
+					if (download_status == DownloadStatus::DOWNLOAD_STATUS_OK) {
+						Logger::log(Logger::Level::INFO,
+							    "Model download complete");
+						gf->whisper_model_path = new_model_path;
+						start_whisper_thread_with_path(
+							gf, path, silero_vad_model_file.c_str());
+					} else {
+						Logger::log(Logger::Level::ERROR_LOG,
+							    "Model download failed");
+					}
+				},
+				[](int progress) {
+					Logger::log(Logger::Level::INFO, "Download progress: %d%%",
+						    progress);
+				},
+				[](int error_code, const std::string &error) {
+					Logger::log(Logger::Level::ERROR_LOG, "Download error: %s",
+						    error.c_str());
+				});
 		} else {
 			// Model exists, just load it
 			gf->whisper_model_path = new_model_path;

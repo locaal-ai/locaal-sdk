@@ -16,6 +16,7 @@
 #include "whisper-processing.h"
 #include "token-buffer-thread.h"
 #include "logger.h"
+#include "audio-resampler.h"
 
 #define MAX_PREPROC_CHANNELS 10
 
@@ -45,13 +46,13 @@ struct transcription_context {
 	bool cleared_last_sub;
 
 	/* PCM buffers */
-	float *copy_buffers[MAX_PREPROC_CHANNELS];
+	std::vector<std::vector<float>> copy_buffers;
 	std::deque<transcription_filter_audio_info> info_buffer;
-	std::deque<float> input_buffers[MAX_PREPROC_CHANNELS];
+	std::vector<std::deque<float>> input_buffers;
 	std::deque<float> whisper_buffer;
 
 	/* Resampler */
-	audio_resampler_t *resampler_to_whisper;
+	AudioResampler resampler_to_whisper;
 	std::deque<float> resampled_buffer;
 
 	/* whisper */
@@ -128,10 +129,9 @@ struct transcription_context {
 	transcription_context() : whisper_buf_mutex(), whisper_ctx_mutex(), wshiper_thread_cv()
 	{
 		// initialize all pointers to nullptr
-		for (size_t i = 0; i < MAX_PREPROC_CHANNELS; i++) {
-			copy_buffers[i] = nullptr;
+		for (size_t i = 0; i < copy_buffers.size(); i++) {
+			copy_buffers[i].clear();
 		}
-		resampler_to_whisper = nullptr;
 		whisper_model_path = "";
 		whisper_context = nullptr;
 		output_file_path = "";

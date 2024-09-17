@@ -1,7 +1,5 @@
 
-#include <util/profiler.hpp>
-
-#include "transcription-filter-data.h"
+#include "transcription-context.h"
 
 #include "vad-processing.h"
 
@@ -10,8 +8,7 @@
 #include <Windows.h>
 #endif
 
-int get_data_from_buf_and_resample(transcription_filter_data *gf,
-				   uint64_t &start_timestamp_offset_ns,
+int get_data_from_buf_and_resample(transcription_context *gf, uint64_t &start_timestamp_offset_ns,
 				   uint64_t &end_timestamp_offset_ns)
 {
 	uint32_t num_frames_from_infos = 0;
@@ -20,13 +17,13 @@ int get_data_from_buf_and_resample(transcription_filter_data *gf,
 		// scoped lock the buffer mutex
 		std::lock_guard<std::mutex> lock(gf->whisper_buf_mutex);
 
-		if (gf->input_buffers[0].size == 0) {
+		if (gf->input_buffers[0].empty() || gf->info_buffer.empty()) {
 			return 1;
 		}
 
 		Logger::log(gf->log_level,
 			    "segmentation: currently %lu bytes in the audio input buffer",
-			    gf->input_buffers[0].size);
+			    gf->input_buffers[0].size());
 
 		// max number of frames is 10 seconds worth of audio
 		const size_t max_num_frames = gf->sample_rate * 10;
@@ -34,20 +31,20 @@ int get_data_from_buf_and_resample(transcription_filter_data *gf,
 		// pop all infos from the info buffer and mark the beginning timestamp from the first
 		// info as the beginning timestamp of the segment
 		struct transcription_filter_audio_info info_from_buf = {0};
-		const size_t size_of_audio_info = sizeof(transcription_filter_audio_info);
-		while (gf->info_buffer.size >= size_of_audio_info) {
-			circlebuf_pop_front(&gf->info_buffer, &info_from_buf, size_of_audio_info);
+		while (gf->info_buffer.size() > 0) {
+			info_from_buf = gf->info_buffer.front();
 			num_frames_from_infos += info_from_buf.frames;
 			if (start_timestamp_offset_ns == 0) {
 				start_timestamp_offset_ns = info_from_buf.timestamp_offset_ns;
 			}
 			// Check if we're within the needed segment length
 			if (num_frames_from_infos > max_num_frames) {
-				// too big, push the last info into the buffer's front where it was
+				// too big, keep the last info where it was
 				num_frames_from_infos -= info_from_buf.frames;
-				circlebuf_push_front(&gf->info_buffer, &info_from_buf,
-						     size_of_audio_info);
 				break;
+			} else {
+				// pop the info from the buffer
+				gf->info_buffer.pop_front();
 			}
 		}
 		// calculate the end timestamp from the info plus the number of frames in the packet
@@ -65,14 +62,19 @@ int get_data_from_buf_and_resample(transcription_filter_data *gf,
 
 		for (size_t c = 0; c < gf->channels; c++) {
 			// zero the rest of copy_buffers
-			memset(gf->copy_buffers[c], 0, gf->frames * sizeof(float));
+			gf->copy_buffers[c].resize(num_frames_from_infos, 0.0f);
 		}
 
 		/* Pop from input circlebuf */
 		for (size_t c = 0; c < gf->channels; c++) {
-			// Push the new data to copy_buffers[c]
-			circlebuf_pop_front(&gf->input_buffers[c], gf->copy_buffers[c],
-					    num_frames_from_infos * sizeof(float));
+			// Pop num_frames_from_infos samples from the input_buffers[c] into copy_buffers[c]
+			// and then remove the samples from the input_buffers[c]
+			std::copy(gf->input_buffers[c].begin(),
+				  gf->input_buffers[c].begin() + num_frames_from_infos,
+				  gf->copy_buffers[c].begin());
+			gf->input_buffers[c].erase(gf->input_buffers[c].begin(),
+						   gf->input_buffers[c].begin() +
+							   num_frames_from_infos);
 		}
 	}
 
@@ -81,31 +83,25 @@ int get_data_from_buf_and_resample(transcription_filter_data *gf,
 
 	{
 		// resample to 16kHz
-		float *resampled_16khz[MAX_PREPROC_CHANNELS];
-		uint32_t resampled_16khz_frames;
-		uint64_t ts_offset;
-		{
-			ProfileScope("resample");
-			audio_resampler_resample(gf->resampler_to_whisper,
-						 (uint8_t **)resampled_16khz,
-						 &resampled_16khz_frames, &ts_offset,
-						 (const uint8_t **)gf->copy_buffers,
-						 (uint32_t)num_frames_from_infos);
-		}
+		std::vector<std::vector<float>> resampled_16khz =
+			gf->resampler_to_whisper.resample(gf->copy_buffers);
 
-		circlebuf_push_back(&gf->resampled_buffer, resampled_16khz[0],
-				    resampled_16khz_frames * sizeof(float));
+		// push all of data from resampled_16khz[0] to the back of gf->resampled_buffer
+		const size_t resampled_16khz_frames = resampled_16khz[0].size();
+		gf->resampled_buffer.insert(gf->resampled_buffer.end(), resampled_16khz[0].begin(),
+					    resampled_16khz[0].end());
+
 		Logger::log(gf->log_level,
 			    "resampled: %d channels, %d frames, %f ms, current size: %lu bytes",
 			    (int)gf->channels, (int)resampled_16khz_frames,
 			    (float)resampled_16khz_frames / WHISPER_SAMPLE_RATE * 1000.0f,
-			    gf->resampled_buffer.size);
+			    gf->resampled_buffer.size());
 	}
 
 	return 0;
 }
 
-vad_state vad_based_segmentation(transcription_filter_data *gf, vad_state last_vad_state)
+vad_state vad_based_segmentation(transcription_context *gf, vad_state last_vad_state)
 {
 	// get data from buffer and resample
 	uint64_t start_timestamp_offset_ns = 0;
@@ -117,24 +113,27 @@ vad_state vad_based_segmentation(transcription_filter_data *gf, vad_state last_v
 		return last_vad_state;
 	}
 
-	const size_t vad_window_size_samples = gf->vad->get_window_size_samples() * sizeof(float);
+	const size_t vad_window_size_samples = gf->vad->get_window_size_samples();
 	const size_t min_vad_buffer_size = vad_window_size_samples * 8;
-	if (gf->resampled_buffer.size < min_vad_buffer_size)
+	if (gf->resampled_buffer.size() < min_vad_buffer_size)
 		return last_vad_state;
 
-	size_t vad_num_windows = gf->resampled_buffer.size / vad_window_size_samples;
+	size_t vad_num_windows = gf->resampled_buffer.size();
 
 	std::vector<float> vad_input;
 	vad_input.resize(vad_num_windows * gf->vad->get_window_size_samples());
-	circlebuf_pop_front(&gf->resampled_buffer, vad_input.data(),
-			    vad_input.size() * sizeof(float));
 
+	// pop the data from the resampled buffer
+	std::copy(gf->resampled_buffer.begin(), gf->resampled_buffer.begin() + vad_input.size(),
+		  vad_input.begin());
+	gf->resampled_buffer.erase(gf->resampled_buffer.begin(),
+				   gf->resampled_buffer.begin() + vad_input.size());
+
+	// send the data to the VAD
 	Logger::log(gf->log_level, "sending %d frames to vad, %d windows, reset state? %s",
 		    vad_input.size(), vad_num_windows, (!last_vad_state.vad_on) ? "yes" : "no");
-	{
-		ProfileScope("vad->process");
-		gf->vad->process(vad_input, !last_vad_state.vad_on);
-	}
+
+	gf->vad->process(vad_input, !last_vad_state.vad_on);
 
 	const uint64_t start_ts_offset_ms = start_timestamp_offset_ns / 1000000;
 	const uint64_t end_ts_offset_ms = end_timestamp_offset_ns / 1000000;
@@ -188,16 +187,15 @@ vad_state vad_based_segmentation(transcription_filter_data *gf, vad_state last_v
 		const int number_of_frames = end_frame - start_frame;
 
 		// push the data into gf-whisper_buffer
-		circlebuf_push_back(&gf->whisper_buffer, vad_input.data() + start_frame,
-				    number_of_frames * sizeof(float));
+		gf->whisper_buffer.insert(gf->whisper_buffer.end(), vad_input.begin() + end_frame,
+					  vad_input.end());
 
 		Logger::log(
 			gf->log_level,
-			"VAD segment %d/%d. pushed %d to %d (%d frames / %lu ms). current size: %lu bytes / %lu frames / %lu ms",
+			"VAD segment %d/%d. pushed %d to %d (%d frames / %lu ms). current size:  %lu frames / %lu ms",
 			i, (stamps.size() - 1), start_frame, end_frame, number_of_frames,
-			number_of_frames * 1000 / WHISPER_SAMPLE_RATE, gf->whisper_buffer.size,
-			gf->whisper_buffer.size / sizeof(float),
-			gf->whisper_buffer.size / sizeof(float) * 1000 / WHISPER_SAMPLE_RATE);
+			number_of_frames * 1000 / WHISPER_SAMPLE_RATE, gf->whisper_buffer.size(),
+			gf->whisper_buffer.size() * 1000 / WHISPER_SAMPLE_RATE);
 
 		// segment "end" is in the middle of the buffer, send it to inference
 		if (stamps[i].end < (int)vad_input.size()) {
@@ -273,7 +271,7 @@ vad_state vad_based_segmentation(transcription_filter_data *gf, vad_state last_v
 	return current_vad_state;
 }
 
-vad_state hybrid_vad_segmentation(transcription_filter_data *gf, vad_state last_vad_state)
+vad_state hybrid_vad_segmentation(transcription_context *gf, vad_state last_vad_state)
 {
 	// get data from buffer and resample
 	uint64_t start_timestamp_offset_ns = 0;
@@ -286,15 +284,12 @@ vad_state hybrid_vad_segmentation(transcription_filter_data *gf, vad_state last_
 
 	last_vad_state.end_ts_offset_ms = end_timestamp_offset_ns / 1000000;
 
-	// extract the data from the resampled buffer with circlebuf_pop_front into a temp buffer
-	// and then push it into the whisper buffer
-	const size_t resampled_buffer_size = gf->resampled_buffer.size;
-	std::vector<uint8_t> temp_buffer;
-	temp_buffer.resize(resampled_buffer_size);
-	circlebuf_pop_front(&gf->resampled_buffer, temp_buffer.data(), resampled_buffer_size);
-	circlebuf_push_back(&gf->whisper_buffer, temp_buffer.data(), resampled_buffer_size);
+	// extract the data from the resampled buffer and push it into the whisper buffer
+	gf->whisper_buffer.insert(gf->whisper_buffer.end(), gf->resampled_buffer.begin(),
+				  gf->resampled_buffer.end());
+	gf->resampled_buffer.clear();
 
-	Logger::log(gf->log_level, "whisper buffer size: %lu bytes", gf->whisper_buffer.size);
+	Logger::log(gf->log_level, "whisper buffer size: %lu frames", gf->whisper_buffer.size());
 
 	// use last_vad_state timestamps to calculate the duration of the current segment
 	if (last_vad_state.end_ts_offset_ms - last_vad_state.start_ts_offest_ms >=
@@ -328,17 +323,15 @@ vad_state hybrid_vad_segmentation(transcription_filter_data *gf, vad_state last_
 
 			// run vad on the current buffer
 			std::vector<float> vad_input;
-			vad_input.resize(gf->whisper_buffer.size / sizeof(float));
-			circlebuf_peek_front(&gf->whisper_buffer, vad_input.data(),
-					     vad_input.size() * sizeof(float));
+			vad_input.resize(gf->whisper_buffer.size());
+			std::copy(gf->whisper_buffer.begin(), gf->whisper_buffer.end(),
+				  vad_input.begin());
 
 			Logger::log(gf->log_level, "sending %d frames to vad, %.1f ms",
 				    vad_input.size(),
 				    (float)vad_input.size() * 1000.0f / (float)WHISPER_SAMPLE_RATE);
-			{
-				ProfileScope("vad->process");
-				gf->vad->process(vad_input, true);
-			}
+
+			gf->vad->process(vad_input, true);
 
 			if (gf->vad->get_speech_timestamps().size() > 0) {
 				// VAD detected speech in the partial segment
@@ -350,10 +343,10 @@ vad_state hybrid_vad_segmentation(transcription_filter_data *gf, vad_state last_
 				Logger::log(gf->log_level,
 					    "VAD detected silence in partial segment");
 				// pop the partial segment from the whisper buffer, save some audio for the next segment
-				const size_t num_bytes_to_keep =
-					(WHISPER_SAMPLE_RATE / 4) * sizeof(float);
-				circlebuf_pop_front(&gf->whisper_buffer, nullptr,
-						    gf->whisper_buffer.size - num_bytes_to_keep);
+				const size_t num_frames_to_keep = (WHISPER_SAMPLE_RATE / 4);
+				gf->whisper_buffer.erase(gf->whisper_buffer.begin(),
+							 gf->whisper_buffer.begin() +
+								 num_frames_to_keep);
 			}
 		}
 	}
@@ -361,15 +354,15 @@ vad_state hybrid_vad_segmentation(transcription_filter_data *gf, vad_state last_
 	return last_vad_state;
 }
 
-void initialize_vad(transcription_filter_data *gf, const char *silero_vad_model_file)
+void initialize_vad(transcription_context *gf, const char *silero_vad_model_file)
 {
 	// initialize Silero VAD
 #ifdef _WIN32
 	// convert mbstring to wstring
 	int count = MultiByteToWideChar(CP_UTF8, 0, silero_vad_model_file,
-					strlen(silero_vad_model_file), NULL, 0);
+					(int)strlen(silero_vad_model_file), NULL, 0);
 	std::wstring silero_vad_model_path(count, 0);
-	MultiByteToWideChar(CP_UTF8, 0, silero_vad_model_file, strlen(silero_vad_model_file),
+	MultiByteToWideChar(CP_UTF8, 0, silero_vad_model_file, (int)strlen(silero_vad_model_file),
 			    &silero_vad_model_path[0], count);
 	Logger::log(gf->log_level, "Create silero VAD: %S", silero_vad_model_path.c_str());
 #else

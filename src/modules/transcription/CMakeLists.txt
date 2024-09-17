@@ -1,4 +1,5 @@
 add_library(Transcription
+    src/audio-resampler.cpp
     src/silero-vad-onnx.cpp
     src/token-buffer-thread.cpp
     src/transcription-utils.cpp
