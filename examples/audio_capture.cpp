@@ -12,6 +12,8 @@ AudioCapture::~AudioCapture() {
 }
 
 bool AudioCapture::initialize(int device_index, int requested_sample_rate) {
+    SDL_InitSubSystem(SDL_INIT_AUDIO);
+
     SDL_AudioSpec desired_spec, obtained_spec;
 
     SDL_zero(desired_spec);

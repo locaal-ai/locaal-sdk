@@ -330,14 +330,12 @@ void run_inference_and_callbacks(transcription_context *gf, uint64_t start_offse
 	}
 }
 
-void whisper_loop(void *data)
+void whisper_loop(transcription_context *gf)
 {
-	if (data == nullptr) {
-		Logger::log(Logger::Level::ERROR_LOG, "whisper_loop: data is null");
+	if (gf == nullptr) {
+		Logger::log(Logger::Level::ERROR_LOG, "whisper_loop: context is null");
 		return;
 	}
-
-	struct transcription_context *gf = static_cast<struct transcription_context *>(data);
 
 	Logger::log(gf->log_level, "Starting whisper thread");
 

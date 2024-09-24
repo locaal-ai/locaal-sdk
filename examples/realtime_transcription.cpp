@@ -1,11 +1,13 @@
 #include <locaal.h>
+
+#define SDL_MAIN_HANDLED
 #include "audio_capture.h"
 
 #include <iostream>
 
 int main()
 {
-	SDL_SetMainReady();
+	// SDL_SetMainReady();
 
 	// Initialize the library
 	locaal::Transcription tt;

@@ -29,7 +29,9 @@ struct DetectionResultWithText {
 	std::string language;
 };
 
-void whisper_loop(void *data);
+struct transcription_context;
+
+void whisper_loop(struct transcription_context *gf);
 struct whisper_context *init_whisper_context(const std::string &model_path,
 					     struct transcription_context *gf);
 void run_inference_and_callbacks(transcription_context *gf, uint64_t start_offset_ms,

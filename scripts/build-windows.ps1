@@ -1,6 +1,7 @@
 param(
     [switch]$Verbose,
-    [switch]$Clean
+    [switch]$Clean,
+    [switch]$Examples
 )
 
 $verboseFlag = ""
@@ -33,5 +34,8 @@ Invoke-Expression $configureCommand
 
 # Build step
 $buildCommand = "cmake --build $buildDir --config Release $verboseBuildFlag"
+if ($Examples) {
+    $buildCommand += " --target examples"
+}
 Write-Host "Executing build command: $buildCommand"
 Invoke-Expression $buildCommand

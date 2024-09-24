@@ -4,6 +4,8 @@
 #include <string>
 #include <functional>
 
+struct transcription_context;
+
 namespace locaal {
 
 struct TranscriptionResult {
@@ -41,6 +43,7 @@ private:
 	std::function<void(const TranscriptionResult &)> transcriptionCallback_;
 
 	// Add any other necessary private members
+	transcription_context *gf;
 };
 
 } // namespace locaal
