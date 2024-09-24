@@ -1,6 +1,5 @@
 #include "transcription.h"
 #include "logger.h"
-#include "transcription-context.h"
 #include "whisper-utils.h"
 
 #include <iostream>
