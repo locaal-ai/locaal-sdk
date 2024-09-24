@@ -1,5 +1,7 @@
 # build sentencepiece from "https://github.com/google/sentencepiece.git"
 
+set(SENTENCEPIECE_INSTALL_LIB_LOCATION lib/${CMAKE_STATIC_LIBRARY_PREFIX}sentencepiece${CMAKE_STATIC_LIBRARY_SUFFIX})
+
 if(APPLE)
 
   include(FetchContent)
@@ -28,7 +30,7 @@ elseif(WIN32)
     $<BUILD_INTERFACE:${sentencepiece_fetch_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
   )
-                                             
+
 else()
 
   set(SP_URL
@@ -36,7 +38,6 @@ else()
       CACHE STRING "URL of sentencepiece repository")
 
   set(SP_CMAKE_OPTIONS -DSPM_ENABLE_SHARED=OFF)
-  set(SENTENCEPIECE_INSTALL_LIB_LOCATION lib/${CMAKE_STATIC_LIBRARY_PREFIX}sentencepiece${CMAKE_STATIC_LIBRARY_SUFFIX})
 
   include(ExternalProject)
 
@@ -67,4 +68,4 @@ endif()
 # add exported target install
 install(TARGETS sentencepiece EXPORT sentencepiece-targets)
 install(EXPORT sentencepiece-targets NAMESPACE sentencepiece:: DESTINATION lib/cmake/sentencepiece)
-install(FILES ${sentencepiece_fetch_SOURCE_DIR}/lib/libsentencepiece.a DESTINATION "bin")
+install(FILES ${sentencepiece_fetch_SOURCE_DIR}/${SENTENCEPIECE_INSTALL_LIB_LOCATION} DESTINATION "bin")

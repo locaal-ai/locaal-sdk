@@ -73,7 +73,7 @@ if(APPLE)
       ${CMAKE_INSTALL_NAME_TOOL} -change "@rpath/libonnxruntime.${Onnxruntime_VERSION}.dylib"
       "@loader_path/../Frameworks/libonnxruntime.${Onnxruntime_VERSION}.dylib" $<TARGET_FILE:${CMAKE_PROJECT_NAME}>)
 elseif(MSVC)
-  
+
   set(Onnxruntime_LIB_NAMES onnxruntime;onnxruntime_providers_shared)
   foreach(lib_name IN LISTS Onnxruntime_LIB_NAMES)
     add_library(Ort::${lib_name} SHARED IMPORTED)
@@ -81,7 +81,7 @@ elseif(MSVC)
     set_target_properties(Ort::${lib_name} PROPERTIES IMPORTED_LOCATION ${onnxruntime_SOURCE_DIR}/lib/${lib_name}.dll)
     set_target_properties(Ort::${lib_name} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${onnxruntime_SOURCE_DIR}/include)
     target_link_libraries(Ort INTERFACE Ort::${lib_name})
-    install(FILES ${onnxruntime_SOURCE_DIR}/lib/${lib_name}.dll DESTINATION "obs-plugins/64bit")
+    install(FILES ${onnxruntime_SOURCE_DIR}/lib/${lib_name}.dll DESTINATION "bin")
   endforeach()
 
   # add exported target install
@@ -98,7 +98,7 @@ else()
     set(Onnxruntime_INSTALL_LIBS ${Onnxruntime_LINK_LIBS}
                                  "${onnxruntime_SOURCE_DIR}/lib/libonnxruntime_providers_shared.so")
   endif()
-  install(FILES ${Onnxruntime_INSTALL_LIBS} DESTINATION "${CMAKE_INSTALL_LIBDIR}/obs-plugins/${CMAKE_PROJECT_NAME}")
+  install(FILES ${Onnxruntime_INSTALL_LIBS} DESTINATION "bin")
 
   target_link_libraries(Ort INTERFACE ${Onnxruntime_LINK_LIBS})
   target_include_directories(Ort INTERFACE "${onnxruntime_SOURCE_DIR}/include")

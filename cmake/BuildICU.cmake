@@ -42,7 +42,7 @@ if(WIN32)
       PATHS ${ICU_BINARY_DIR}
       NO_DEFAULT_PATH)
     # Copy the DLLs to the output directory
-    install(FILES ${ICU_DLL_${lib}} DESTINATION "obs-plugins/64bit")
+    install(FILES ${ICU_DLL_${lib}} DESTINATION "bin")
     # add the library
     add_library(ICU::${lib} SHARED IMPORTED GLOBAL)
     set_target_properties(ICU::${lib} PROPERTIES IMPORTED_LOCATION "${ICU_LIB_${lib}}" IMPORTED_IMPLIB

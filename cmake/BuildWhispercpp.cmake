@@ -97,7 +97,7 @@ elseif(WIN32)
 
   # glob all dlls in the bin directory and install them
   file(GLOB WHISPER_DLLS ${whispercpp_fetch_SOURCE_DIR}/bin/*.dll)
-  install(FILES ${WHISPER_DLLS} DESTINATION "obs-plugins/64bit")
+  install(FILES ${WHISPER_DLLS} DESTINATION "bin")
 else()
   if(${CMAKE_BUILD_TYPE} STREQUAL Release OR ${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
     set(Whispercpp_BUILD_TYPE Release)
@@ -156,5 +156,7 @@ install(FILES ${whispercpp_fetch_SOURCE_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}w
         DESTINATION "bin")
 install(FILES ${whispercpp_fetch_SOURCE_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ggml${CMAKE_STATIC_LIBRARY_SUFFIX}
         DESTINATION "bin")
-install(FILES ${whispercpp_fetch_SOURCE_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}whisper.coreml${CMAKE_STATIC_LIBRARY_SUFFIX}
-        DESTINATION "bin")
+if(APPLE)
+    install(FILES ${whispercpp_fetch_SOURCE_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}whisper.coreml${CMAKE_STATIC_LIBRARY_SUFFIX}
+            DESTINATION "bin")
+endif(APPLE)
