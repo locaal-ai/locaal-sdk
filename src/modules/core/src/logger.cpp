@@ -18,7 +18,7 @@ void Logger::setLogLevel(Logger::Level level)
 	s_logLevel = level;
 }
 
-void Logger::log(Level level, const std::string &format, ...)
+void Logger::log(Level level, const std::string format, ...)
 {
 	if (level < s_logLevel) {
 		return;

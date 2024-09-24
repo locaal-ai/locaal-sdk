@@ -28,10 +28,8 @@ struct DetectionResultWithText {
 	std::vector<whisper_token_data> tokens;
 	std::string language;
 };
-whats it
 
-	void
-	whisper_loop(void *data);
+void whisper_loop(void *data);
 struct whisper_context *init_whisper_context(const std::string &model_path,
 					     struct transcription_context *gf);
 void run_inference_and_callbacks(transcription_context *gf, uint64_t start_offset_ms,

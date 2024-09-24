@@ -5,6 +5,7 @@
 #include <sago/platform_folders.h>
 
 #include <filesystem>
+#include <fstream>
 
 #include <curl/curl.h>
 
@@ -67,10 +68,11 @@ std::string find_model_ext_file(const ModelInfo &model_info, const std::string &
 	return find_ext_file_in_folder(model_local_folder_path, ext);
 }
 
-size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
+size_t write_data(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
-	size_t written = fwrite(ptr, size, nmemb, stream);
-	return written;
+	std::ofstream *fp = static_cast<std::ofstream *>(userdata);
+	fp->write((const char *)ptr, size * nmemb);
+	return size * nmemb;
 }
 
 std::string get_filename_from_url(const std::string &url)
@@ -123,8 +125,8 @@ void download_model(const ModelInfo &model_info, download_finished_callback_t fi
 				continue;
 			}
 
-			FILE *fp = fopen(model_file_save_path.c_str(), "wb");
-			if (fp == nullptr) {
+			std::ofstream fp(model_file_save_path, std::ios::binary);
+			if (!fp.is_open()) {
 				Logger::log(Logger::Level::ERROR_LOG,
 					    "Failed to open model file for writing %s.",
 					    model_file_save_path.c_str());
@@ -134,7 +136,7 @@ void download_model(const ModelInfo &model_info, download_finished_callback_t fi
 			}
 			curl_easy_setopt(curl, CURLOPT_URL, model_download_file.url.c_str());
 			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-			curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fp);
 			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 			curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION,
 					 [progress_callback](void *clientp, curl_off_t dltotal,
@@ -158,7 +160,7 @@ void download_model(const ModelInfo &model_info, download_finished_callback_t fi
 				error_callback(DownloadError::DOWNLOAD_ERROR_NETWORK,
 					       "Failed to download model file.");
 			}
-			fclose(fp);
+			fp.close();
 		}
 		curl_easy_cleanup(curl);
 		finished_callback(DownloadStatus::DOWNLOAD_STATUS_OK, model_local_config_path);

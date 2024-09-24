@@ -12,7 +12,7 @@ public:
 
 	static void setLogCallback(LogCallback callback);
 	static void setLogLevel(Level level);
-	static void Logger::log(Level level, const std::string &format, ...);
+	static void Logger::log(Level level, const std::string format, ...);
 	// set log level
 
 private:
