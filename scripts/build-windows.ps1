@@ -1,7 +1,8 @@
 param(
     [switch]$Verbose,
     [switch]$Clean,
-    [switch]$Examples
+    [switch]$Examples,
+    [switch]$Install
 )
 
 $verboseFlag = ""
@@ -39,3 +40,12 @@ if ($Examples) {
 }
 Write-Host "Executing build command: $buildCommand"
 Invoke-Expression $buildCommand
+
+# Install step
+if ($Install) {
+    $installCommand = "cmake --install $buildDir --config Release --prefix ./installed/"
+    Write-Host "Executing install command: $installCommand"
+    Invoke-Expression $installCommand
+}
+
+Write-Host "Done."

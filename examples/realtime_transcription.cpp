@@ -1,4 +1,5 @@
 #include <locaal.h>
+#include <logger.h>
 
 #define SDL_MAIN_HANDLED
 #include "audio_capture.h"
@@ -7,7 +8,8 @@
 
 int main()
 {
-	// SDL_SetMainReady();
+	// set the log level to DEBUG
+	Logger::setLogLevel(Logger::Level::DEBUG);
 
 	// Initialize the library
 	locaal::Transcription tt;

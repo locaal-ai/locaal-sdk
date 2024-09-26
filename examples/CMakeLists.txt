@@ -7,3 +7,6 @@ target_link_libraries(RealtimeTranscription PRIVATE SDL2 Core Transcription)
 # add target "examples" to the global target list
 add_custom_target(examples)
 add_dependencies(examples RealtimeTranscription)
+
+# install the target to the bin directory
+install(TARGETS RealtimeTranscription DESTINATION bin)
