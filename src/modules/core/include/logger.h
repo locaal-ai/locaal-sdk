@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include <sstream>
 
 class Logger {
 public:
@@ -13,7 +14,30 @@ public:
 	static void setLogCallback(LogCallback callback);
 	static void setLogLevel(Level level);
 	static void Logger::log(Level level, const std::string format, ...);
-	// set log level
+
+	class LogStream {
+	public:
+		LogStream(Level level) : m_level(level) {}
+
+		template<typename T> LogStream &operator<<(const T &value)
+		{
+			m_stream << value;
+			return *this;
+		}
+
+		~LogStream()
+		{
+			if (Logger::s_logCallback) {
+				Logger::s_logCallback(m_level, m_stream.str());
+			}
+		}
+
+	private:
+		Level m_level;
+		std::ostringstream m_stream;
+	};
+
+	static LogStream stream(Level level) { return LogStream(level); }
 
 private:
 	static LogCallback s_logCallback;

@@ -19,23 +19,25 @@ int main()
 
 	tt.setModelDownloadCallbacks(
 		[](const std::string &model_name, const std::string &model_path) {
-			std::cout << "Model downloaded: " << model_name << " at " << model_path
-				  << std::endl;
+			Logger::stream(Logger::Level::INFO)
+				<< "Model downloaded: " << model_name << " at " << model_path;
 		},
 		[](const std::string &model_name, const std::string &model_path) {
-			std::cout << "Model download failed: " << model_name << " at " << model_path
-				  << std::endl;
+			Logger::stream(Logger::Level::INFO)
+				<< "Model download failed: " << model_name << " at " << model_path;
 		},
 		[](const std::string &model_name, const std::string &model_path) {
-			std::cout << "Model download progress: " << model_name << " at "
-				  << model_path << std::endl;
+			Logger::stream(Logger::Level::INFO)
+				<< "Model download progress: " << model_name << " at "
+				<< model_path;
 		});
 
 	// Set the callbacks for the transcription
 	tt.setTranscriptionCallback([](const locaal::TranscriptionResult &result) {
 		// Print the transcription result
-		std::cout << "Transcription:" << (result.is_partial ? " (partial) " : " ")
-			  << result.text << std::endl;
+		Logger::stream(Logger::Level::INFO)
+			<< "Transcription:" << (result.is_partial ? " (partial) " : " ")
+			<< result.text;
 	});
 
 	// Start real-time transcription background thread
@@ -44,13 +46,15 @@ int main()
 	// Start capturing audio from the microphone
 	AudioCapture audio_capture(1000);
 	if (!audio_capture.initialize(0, 16000)) {
-		std::cerr << "Failed to initialize audio capture" << std::endl;
+		Logger::stream(Logger::Level::ERROR_LOG) << "Failed to initialize audio capture";
 		return 1;
 	}
 	if (!audio_capture.startCapture()) {
-		std::cerr << "Failed to start audio capture" << std::endl;
+		Logger::stream(Logger::Level::ERROR_LOG) << "Failed to start audio capture";
 		return 1;
 	}
+
+	Logger::log(Logger::Level::INFO, "Starting real-time transcription...");
 
 	// Main loop
 	while (true) {

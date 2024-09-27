@@ -24,6 +24,13 @@ target_include_directories(sago_platform_folders_lib
         $<BUILD_INTERFACE:${SAGO_INSTALL_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+# Link sago::platform_folders library
+target_link_libraries(sago_platform_folders_lib
+    INTERFACE
+        $<BUILD_INTERFACE:${SAGO_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}platform_folders${CMAKE_STATIC_LIBRARY_SUFFIX}>
+)
+
 # add exported target install
 install(TARGETS sago_platform_folders_lib
     EXPORT sago_platform_folders_lib
