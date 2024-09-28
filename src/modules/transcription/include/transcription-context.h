@@ -26,6 +26,13 @@ struct transcription_filter_audio_info {
 	uint64_t timestamp_offset_ns; // offset (since start of processing) timestamp in ns
 };
 
+/**
+ * @class transcription_context
+ * @brief A class for managing the transcription context.
+ * 
+ * The transcription_context class provides methods to manage the transcription
+ * context, including audio buffers, resampling, and the Whisper model.
+ */
 struct transcription_context {
 	size_t channels;      // number of channels
 	uint32_t sample_rate; // input sample rate
@@ -125,7 +132,9 @@ struct transcription_context {
 	TokenBufferSegmentation buffered_output_output_type =
 		TokenBufferSegmentation::SEGMENTATION_TOKEN;
 
-	// ctor
+	/**
+	 * @brief Default constructor.
+	 */
 	transcription_context() : whisper_buf_mutex(), whisper_ctx_mutex(), wshiper_thread_cv()
 	{
 		// initialize all pointers to nullptr
@@ -139,12 +148,40 @@ struct transcription_context {
 	}
 };
 
-// Callback sent when the transcription has a new result
+/**
+ * @brief Sets the text callback for the transcription context.
+ * 
+ * This function assigns a callback function that will be invoked with the 
+ * detection result containing text. The callback is associated with the 
+ * provided transcription context.
+ * 
+ * @param gf A pointer to the transcription context structure.
+ * @param str A reference to the DetectionResultWithText object containing 
+ *            the detection result and associated text.
+ */
 void set_text_callback(struct transcription_context *gf, const DetectionResultWithText &str);
+
+/**
+ * @brief Clears the current caption in the transcription context.
+ * 
+ * This function resets or removes the current caption stored in the given
+ * transcription context, effectively clearing any ongoing transcription data.
+ * 
+ * @param gf_ A pointer to the transcription context whose current caption
+ *            needs to be cleared.
+ */
 void clear_current_caption(transcription_context *gf_);
 
-// Callback sent when the VAD finds an audio chunk. Sample rate = WHISPER_SAMPLE_RATE, channels = 1
-// The audio chunk is in 32-bit float format
+/**
+ * @brief Callback function to process audio chunks for transcription.
+ *
+ * This function is called to handle audio chunks and perform transcription.
+ *
+ * @param gf Pointer to the transcription context.
+ * @param pcm32f_data Vector containing the audio data in 32-bit float PCM format.
+ * @param vad_state Integer representing the Voice Activity Detection (VAD) state.
+ * @param result Reference to a DetectionResultWithText object containing the detection result and associated text.
+ */
 void audio_chunk_callback(struct transcription_context *gf, const std::vector<float> pcm32f_data,
 			  int vad_state, const DetectionResultWithText &result);
 

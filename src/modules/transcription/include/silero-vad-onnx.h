@@ -12,6 +12,21 @@ typedef std::wstring SileroString;
 typedef std::string SileroString;
 #endif
 
+/**
+ * @class timestamp_t
+ * @brief Represents a timestamp with start and end times.
+ *
+ * The timestamp_t class encapsulates a time interval with a start and end time.
+ * It provides constructors for initialization, an assignment operator, and an
+ * equality comparison operator. Additionally, it includes methods for converting
+ * the timestamp to a string representation.
+ *
+ * @var int timestamp_t::start
+ * The start time of the timestamp.
+ *
+ * @var int timestamp_t::end
+ * The end time of the timestamp.
+ */
 class timestamp_t {
 public:
 	int start;
@@ -31,6 +46,17 @@ private:
 	std::string format(const char *fmt, ...);
 };
 
+/**
+ * @class VadIterator
+ * @brief A class for Voice Activity Detection (VAD) using ONNX runtime.
+ * 
+ * This class provides methods to process audio data and detect speech segments
+ * using a pre-trained ONNX model.
+ * 
+ * @note The class is designed to work with specific sample rates and window sizes.
+ * 
+ * @file silero-vad-onnx.h
+ */
 class VadIterator {
 private:
 	// OnnxRuntime resources
@@ -41,20 +67,86 @@ private:
 	Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeCPU);
 
 private:
+	/**
+	 * @brief Initializes the engine threads.
+	 * 
+	 * @param inter_threads Number of inter threads.
+	 * @param intra_threads Number of intra threads.
+	 */
 	void init_engine_threads(int inter_threads, int intra_threads);
+	/**
+	 * @brief Initializes the ONNX model.
+	 * 
+	 * @param model_path Path to the ONNX model file.
+	 */
 	void init_onnx_model(const SileroString &model_path);
+	/**
+	 * @brief Resets the internal states of the VAD.
+	 * 
+	 * @param reset_state Flag to indicate whether to reset the state.
+	 */
 	void reset_states(bool reset_state);
+	/**
+	 * @brief Predicts the VAD output for a single frame of audio data.
+	 * 
+	 * @param data A vector containing the audio data.
+	 * @return The VAD prediction score.
+	 */
 	float predict_one(const std::vector<float> &data);
+	/**
+	 * @brief Predicts the VAD output for a sequence of audio data.
+	 * 
+	 * @param data A vector containing the audio data.
+	 */
 	void predict(const std::vector<float> &data);
 
 public:
+	/**
+	 * @brief Processes the input audio data and updates the internal state.
+	 * 
+	 * @param input_wav A vector containing the input audio data.
+	 * @param reset_state Flag to indicate whether to reset the state.
+	 */
 	void process(const std::vector<float> &input_wav, bool reset_state = true);
+	/**
+	 * @brief Processes the input audio data and outputs the processed audio data.
+	 * 
+	 * @param input_wav A vector containing the input audio data.
+	 * @param output_wav A vector to store the output audio data.
+	 */
 	void process(const std::vector<float> &input_wav, std::vector<float> &output_wav);
+	/**
+	 * @brief Collects the speech chunks from the input audio data.
+	 * 
+	 * @param input_wav A vector containing the input audio data.
+	 * @param output_wav A vector to store the collected speech chunks.
+	 */
 	void collect_chunks(const std::vector<float> &input_wav, std::vector<float> &output_wav);
+	/**
+	 * @brief Gets the timestamps of detected speech segments.
+	 * 
+	 * @return A vector of timestamps representing the speech segments.
+	 */
 	const std::vector<timestamp_t> get_speech_timestamps() const;
+	/**
+	 * @brief Drops the non-speech chunks from the input audio data.
+	 * 
+	 * @param input_wav A vector containing the input audio data.
+	 * @param output_wav A vector to store the remaining audio data after dropping non-speech chunks.
+	 */
 	void drop_chunks(const std::vector<float> &input_wav, std::vector<float> &output_wav);
+	/**
+	 * @brief Sets the VAD threshold.
+	 * 
+	 * @param threshold_ The new threshold value.
+	 */
 	void set_threshold(float threshold_) { this->threshold = threshold_; }
 
+	/**
+	 * @brief Gets the window size in samples.
+	 * 
+	 * @return The window size in samples.
+	 */
 	int64_t get_window_size_samples() const { return window_size_samples; }
 
 private:
@@ -101,7 +193,18 @@ private:
 	std::vector<const char *> output_node_names = {"output", "stateN"};
 
 public:
-	// Construction
+	/**
+	 * @brief Constructs a VadIterator object.
+	 * 
+	 * @param ModelPath Path to the ONNX model file.
+	 * @param Sample_rate Sample rate of the audio data (default is 16000).
+	 * @param windows_frame_size Size of the window frame (default is 32).
+	 * @param Threshold VAD threshold (default is 0.5).
+	 * @param min_silence_duration_ms Minimum silence duration in milliseconds (default is 0).
+	 * @param speech_pad_ms Speech padding in milliseconds (default is 32).
+	 * @param min_speech_duration_ms Minimum speech duration in milliseconds (default is 32).
+	 * @param max_speech_duration_s Maximum speech duration in seconds (default is infinity).
+	 */
 	VadIterator(const SileroString &ModelPath, int Sample_rate = 16000,
 		    int windows_frame_size = 32, float Threshold = 0.5,
 		    int min_silence_duration_ms = 0, int speech_pad_ms = 32,

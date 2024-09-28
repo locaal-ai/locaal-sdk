@@ -5,15 +5,20 @@ param(
     [switch]$Install
 )
 
-$verboseFlag = ""
-$verboseBuildFlag = ""
+# Set build directory
+$buildDir = "build_x64"
+
+$generateFlags = ""
+$buildFlags = ""
 
 if ($Verbose) {
-    $verboseFlag = "-DCMAKE_VERBOSE_MAKEFILE=ON"
-    $verboseBuildFlag = "--verbose"
+    $generateFlags += "-DCMAKE_VERBOSE_MAKEFILE=ON"
+    $buildFlags += "--verbose"
 }
 
-$buildDir = "build_x64"
+if ($Examples) {
+    $generateFlags += " -DBUILD_EXAMPLES=ON"
+}
 
 # Clean build directory if requested
 if ($Clean) {
@@ -28,16 +33,12 @@ if ($Clean) {
 
 # Configure step
 $configureCommand = "cmake -S . -B $buildDir -DCMAKE_BUILD_TYPE=Release ``
-    -DLocaalSDK_FIND_COMPONENTS=`"Core;Transcription;Translation`" $verboseFlag ``
-    -DBUILD_EXAMPLES=ON"
+    -DLocaalSDK_FIND_COMPONENTS=`"Core;Transcription;Translation`" $generateFlags"
 Write-Host "Executing configure command: $configureCommand"
 Invoke-Expression $configureCommand
 
 # Build step
-$buildCommand = "cmake --build $buildDir --config Release $verboseBuildFlag"
-if ($Examples) {
-    $buildCommand += " --target examples"
-}
+$buildCommand = "cmake --build $buildDir --config Release $buildFlags"
 Write-Host "Executing build command: $buildCommand"
 Invoke-Expression $buildCommand
 

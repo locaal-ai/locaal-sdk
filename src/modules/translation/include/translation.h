@@ -37,10 +37,39 @@ struct translation_context {
 	bool model_loaded;
 };
 
+/**
+ * @brief Builds the translation context.
+ * 
+ * This function initializes and sets up the translation context
+ * which is used for managing translation operations.
+ * 
+ * @param translation_ctx A reference to the translation_context structure
+ *                        that will be initialized and configured.
+ * @return int Returns 0 on success, or a negative error code on failure.
+ */
 int build_translation_context(struct translation_context &translation_ctx);
+/**
+ * @brief Builds and enables the translation model.
+ *
+ * This function initializes the translation model using the specified model file path
+ * and enables it within the given translation context.
+ *
+ * @param gf Pointer to the translation context structure.
+ * @param model_file_path Path to the translation model file.
+ */
 void build_and_enable_translation(struct translation_context *gf,
 				  const std::string &model_file_path);
 
+/**
+ * Translates the given text from the source language to the target language.
+ *
+ * @param translation_ctx The context for the translation operation.
+ * @param text The text to be translated.
+ * @param source_lang The language code of the source text.
+ * @param target_lang The language code of the target text.
+ * @param result The translated text will be stored in this string.
+ * @return An integer indicating the success or failure of the translation operation.
+ */
 int translate(struct translation_context &translation_ctx, const std::string &text,
 	      const std::string &source_lang, const std::string &target_lang, std::string &result);
 

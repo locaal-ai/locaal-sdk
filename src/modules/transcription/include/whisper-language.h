@@ -1,3 +1,11 @@
+/**
+ * @file whisper-language.h
+ * @brief This file contains a static constant map of available languages for the Whisper transcription module.
+ *
+ * The `whisper_available_lang` map provides a mapping between language codes and their corresponding language names.
+ * This map is used to support language detection and transcription in various languages.
+ */
+
 #ifndef WHISPER_LANGUAGE_H
 #define WHISPER_LANGUAGE_H
 

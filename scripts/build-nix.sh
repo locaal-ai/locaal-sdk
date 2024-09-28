@@ -2,26 +2,34 @@
 
 verbose=false
 clean=false
+examples=false
+install=false
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -v|--verbose) verbose=true ;;
         -c|--clean) clean=true ;;
+        -e|--examples) examples=true ;;
+        -i|--install) install=true ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
 done
 
-verbose_flag=""
-verbose_build_flag=""
+generate_flags=""
+build_flags=""
 
 if [ "$verbose" = true ] ; then
-    verbose_flag="-DCMAKE_VERBOSE_MAKEFILE=ON"
-    verbose_build_flag="--verbose"
+    generate_flags="-DCMAKE_VERBOSE_MAKEFILE=ON"
+    build_flags="--verbose"
 fi
 
-build_dir="build_x64"
+if [ "$examples" = true ] ; then
+    generate_flags="$generate_flags -DBUILD_EXAMPLES=ON"
+fi
+
+build_dir="build"
 
 # Clean build directory if requested
 if [ "$clean" = true ] ; then
@@ -42,3 +50,9 @@ eval $configure_command
 build_command="cmake --build $build_dir --config Release $verbose_build_flag"
 echo "Executing build command: $build_command"
 eval $build_command
+
+if [ "$install" = true ] ; then
+    install_command="cmake --install $build_dir --config Release $verbose_build_flag"
+    echo "Executing install command: $install_command"
+    eval $install_command
+fi
