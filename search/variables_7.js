@@ -1,0 +1,20 @@
+var searchData=
+[
+  ['language_482',['language',['../structDetectionResultWithText.html#af34c14ef599cb03c265395f1de717f36',1,'DetectionResultWithText::language()'],['../structlocaal_1_1TranscriptionResult.html#a2e2f874418ec68dfa0e32714876b4986',1,'locaal::TranscriptionResult::language()']]],
+  ['language_5fcodes_483',['language_codes',['../language__codes_8cpp.html#a38c724382b0fdf9515a735bd5b819609',1,'language_codes():&#160;language_codes.cpp'],['../language__codes_8h.html#a8e07b801ce4a2822ae025cda99c4fce0',1,'language_codes():&#160;language_codes.cpp']]],
+  ['language_5fcodes_5ffrom_5fwhisper_484',['language_codes_from_whisper',['../language__codes_8cpp.html#adfb37c350a64c81708ce998b1f7dee13',1,'language_codes_from_whisper():&#160;language_codes.cpp'],['../language__codes_8h.html#aae7969f54e3e8d56bf80f61cc3f2a692',1,'language_codes_from_whisper():&#160;language_codes.cpp']]],
+  ['language_5fcodes_5freverse_485',['language_codes_reverse',['../language__codes_8cpp.html#ae8821f03d7a32d5ceb12ac615f8a4161',1,'language_codes_reverse():&#160;language_codes.cpp'],['../language__codes_8h.html#ad261cd178e64182474e00874c834188b',1,'language_codes_reverse():&#160;language_codes.cpp']]],
+  ['language_5fcodes_5fto_5fwhisper_486',['language_codes_to_whisper',['../language__codes_8cpp.html#a92808edbe9c7593f981b8f669830bb3f',1,'language_codes_to_whisper():&#160;language_codes.cpp'],['../language__codes_8h.html#af6a50d2a98483719873850f4475a539d',1,'language_codes_to_whisper():&#160;language_codes.cpp']]],
+  ['last_5finput_5ftokens_487',['last_input_tokens',['../structtranslation__context.html#a26959d5bed5cd84ba281d02691739968',1,'translation_context']]],
+  ['last_5fnum_5fframes_488',['last_num_frames',['../structtranscription__context.html#a46a14614018b622b9199700620329abb',1,'transcription_context']]],
+  ['last_5fpartial_5fsegment_5fend_5fts_489',['last_partial_segment_end_ts',['../structvad__state.html#ac2a60f7b9673a059acdcf9ee08e202cb',1,'vad_state']]],
+  ['last_5fsub_5frender_5ftime_490',['last_sub_render_time',['../structtranscription__context.html#aa921e843a74f152dd0f3e042173fbd15',1,'transcription_context']]],
+  ['last_5ftext_5ffor_5ftranslation_491',['last_text_for_translation',['../structtranscription__context.html#aa6f9fd5cdc4246457676b163fbf087ff',1,'transcription_context']]],
+  ['last_5ftext_5ftranslation_492',['last_text_translation',['../structtranscription__context.html#aae9d90911b080cf857ee1f8295f49a03',1,'transcription_context']]],
+  ['last_5ftranscription_5fsentence_493',['last_transcription_sentence',['../structtranscription__context.html#ae1313a50011374991a860cb49d91c960',1,'transcription_context']]],
+  ['last_5ftranslation_5ftokens_494',['last_translation_tokens',['../structtranslation__context.html#aa977c65f22e9d2775c13dd3fbd5a82ad',1,'translation_context']]],
+  ['local_5ffolder_5fname_495',['local_folder_name',['../structModelInfo.html#aa30c50a1e2c5d0269de14ec28d187a9c',1,'ModelInfo']]],
+  ['local_5fmodel_5ffolder_5fpath_496',['local_model_folder_path',['../structtranslation__context.html#a5a5854d8a56572f5ee091e19fab7cef0',1,'translation_context']]],
+  ['log_5flevel_497',['log_level',['../structtranscription__context.html#a3d934689684864ece197705475b833e2',1,'transcription_context']]],
+  ['log_5fwords_498',['log_words',['../structtranscription__context.html#aa2a08b40359ccea55f3abdbe13e3c3b6',1,'transcription_context']]]
+];

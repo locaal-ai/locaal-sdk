@@ -1,0 +1,14 @@
+var searchData=
+[
+  ['readme_2emd_163',['README.md',['../README_8md.html',1,'']]],
+  ['reconstructsentence_164',['reconstructSentence',['../whisper-utils_8h.html#a25f64144bbc555d34ea0e9c217a5a071',1,'reconstructSentence(const std::vector&lt; whisper_token_data &gt; &amp;seq1, const std::vector&lt; whisper_token_data &gt; &amp;seq2):&#160;whisper-utils.cpp'],['../whisper-utils_8cpp.html#a25f64144bbc555d34ea0e9c217a5a071',1,'reconstructSentence(const std::vector&lt; whisper_token_data &gt; &amp;seq1, const std::vector&lt; whisper_token_data &gt; &amp;seq2):&#160;whisper-utils.cpp']]],
+  ['remove_5fleading_5ftrailing_5fnonalpha_165',['remove_leading_trailing_nonalpha',['../transcription-utils_8h.html#a301dcad3a6167874948d3a52c5491989',1,'remove_leading_trailing_nonalpha(const std::string &amp;str):&#160;transcription-utils.cpp'],['../transcription-utils_8cpp.html#a301dcad3a6167874948d3a52c5491989',1,'remove_leading_trailing_nonalpha(const std::string &amp;str):&#160;transcription-utils.cpp']]],
+  ['remove_5fstart_5fpunctuation_166',['remove_start_punctuation',['../translation-language-utils_8h.html#a7f0969de4a08a50b3185393e50975a62',1,'remove_start_punctuation(const std::string &amp;text):&#160;translation-language-utils.cpp'],['../translation-language-utils_8cpp.html#a7f0969de4a08a50b3185393e50975a62',1,'remove_start_punctuation(const std::string &amp;text):&#160;translation-language-utils.cpp']]],
+  ['rename_5ffile_5fto_5fmatch_5frecording_167',['rename_file_to_match_recording',['../structtranscription__context.html#a4febb66089041da072921cae26b9fbc4',1,'transcription_context']]],
+  ['resample_168',['resample',['../classAudioResampler.html#a3b32bde7f7d46f773f5bcfced02ac313',1,'AudioResampler']]],
+  ['resampled_5fbuffer_169',['resampled_buffer',['../structtranscription__context.html#a244cd3edead11bced39a3c0894b0c8bb',1,'transcription_context']]],
+  ['resampler_5fto_5fwhisper_170',['resampler_to_whisper',['../structtranscription__context.html#afdcf798af6a30f368ebf4adad90dbee5',1,'transcription_context']]],
+  ['result_171',['result',['../structDetectionResultWithText.html#a9268f9ec16de7f18440318df6ecbd9b3',1,'DetectionResultWithText']]],
+  ['run_5finference_5fand_5fcallbacks_172',['run_inference_and_callbacks',['../whisper-processing_8h.html#ad2c220892a1f87cf81a1c6277beeb8aa',1,'run_inference_and_callbacks(transcription_context *gf, uint64_t start_offset_ms, uint64_t end_offset_ms, int vad_state):&#160;whisper-processing.cpp'],['../whisper-processing_8cpp.html#ad2c220892a1f87cf81a1c6277beeb8aa',1,'run_inference_and_callbacks(transcription_context *gf, uint64_t start_offset_ms, uint64_t end_offset_ms, int vad_state):&#160;whisper-processing.cpp']]],
+  ['run_5fwhisper_5finference_173',['run_whisper_inference',['../whisper-processing_8cpp.html#aa70b4fee4ee896ca5a631a44eb78bcfc',1,'whisper-processing.cpp']]]
+];

@@ -1,0 +1,24 @@
+var searchData=
+[
+  ['max_5fms_5fwork_5fbuffer_127',['MAX_MS_WORK_BUFFER',['../whisper-processing_8h.html#a637293ab865c34b0e3cb1abbd906a7bc',1,'whisper-processing.h']]],
+  ['max_5foverlap_5fsize_5fmsec_128',['MAX_OVERLAP_SIZE_MSEC',['../whisper-processing_8h.html#a4c6f164a67868c0f4b7e6f71eaf5d996',1,'whisper-processing.h']]],
+  ['max_5fpreproc_5fchannels_129',['MAX_PREPROC_CHANNELS',['../transcription-context_8h.html#a2bcea071f9673e149e81193412815533',1,'transcription-context.h']]],
+  ['max_5fsub_5fduration_130',['max_sub_duration',['../structtranscription__context.html#ac3d5a7d5459c40c961c35bc7bd867941',1,'transcription_context']]],
+  ['min_5foverlap_5fsize_5fmsec_131',['MIN_OVERLAP_SIZE_MSEC',['../whisper-processing_8h.html#af5eee500bf05582e07151d7e36f2880d',1,'whisper-processing.h']]],
+  ['min_5fsub_5fduration_132',['min_sub_duration',['../structtranscription__context.html#a79c12febb7adfb9d0c90961ae4c8bf60',1,'transcription_context']]],
+  ['model_2ddownloader_2dtypes_2eh_133',['model-downloader-types.h',['../model-downloader-types_8h.html',1,'']]],
+  ['model_2ddownloader_2ecpp_134',['model-downloader.cpp',['../model-downloader_8cpp.html',1,'']]],
+  ['model_2ddownloader_2eh_135',['model-downloader.h',['../model-downloader_8h.html',1,'']]],
+  ['model_2dfind_2dutils_2ecpp_136',['model-find-utils.cpp',['../model-find-utils_8cpp.html',1,'']]],
+  ['model_2dfind_2dutils_2eh_137',['model-find-utils.h',['../model-find-utils_8h.html',1,'']]],
+  ['model_2dinfos_2ecpp_138',['model-infos.cpp',['../model-infos_8cpp.html',1,'']]],
+  ['model_5floaded_139',['model_loaded',['../structtranslation__context.html#a249deb50179380bda66f9f123ffa5ec5',1,'translation_context']]],
+  ['model_5fmutex_140',['model_mutex',['../structtranslation__context.html#a05e53c7ff9843797607286c92b746eda',1,'translation_context']]],
+  ['model_5ftype_5ftranscription_141',['MODEL_TYPE_TRANSCRIPTION',['../model-downloader-types_8h.html#a9f27db0468ce0ce2994eb68dc919b15dae8c7faedf0e4fbab3cb2ee4b0954082d',1,'model-downloader-types.h']]],
+  ['model_5ftype_5ftranslation_142',['MODEL_TYPE_TRANSLATION',['../model-downloader-types_8h.html#a9f27db0468ce0ce2994eb68dc919b15dadc36bbbfb8f33c1c958d5bdf787ec592',1,'model-downloader-types.h']]],
+  ['model_5ftype_5fvad_143',['MODEL_TYPE_VAD',['../model-downloader-types_8h.html#a9f27db0468ce0ce2994eb68dc919b15da9ac7353844c418d13a36334468d1b42a',1,'model-downloader-types.h']]],
+  ['modelfiledownloadinfo_144',['ModelFileDownloadInfo',['../structModelFileDownloadInfo.html',1,'']]],
+  ['modelinfo_145',['ModelInfo',['../structModelInfo.html',1,'']]],
+  ['models_5finfo_146',['models_info',['../model-downloader-types_8h.html#a0658fb88fb4528c014ba7a50077288d0',1,'models_info():&#160;model-infos.cpp'],['../model-infos_8cpp.html#a0658fb88fb4528c014ba7a50077288d0',1,'models_info():&#160;model-infos.cpp']]],
+  ['modeltype_147',['ModelType',['../model-downloader-types_8h.html#a9f27db0468ce0ce2994eb68dc919b15d',1,'model-downloader-types.h']]]
+];
